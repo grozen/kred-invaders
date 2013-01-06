@@ -15,6 +15,7 @@ GEM
       sass (~> 3.1)
     execjs (1.4.0)
       multi_json (~> 1.0)
+    ffi (1.2.0)
     ffi (1.2.0-x86-mingw32)
     fssm (0.2.9)
     haml (3.1.7)
@@ -97,6 +98,7 @@ GEM
       rack
 
 PLATFORMS
+  ruby
   x86-mingw32
 
 DEPENDENCIES
