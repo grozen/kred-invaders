@@ -4,31 +4,35 @@
 <array>
 	<dict>
 		<key>duration</key>
-		<real>1</real>
+		<real>0.25</real>
 	</dict>
 	<dict>
 		<key>duration</key>
-		<real>1</real>
+		<real>0.25</real>
 	</dict>
 	<dict>
 		<key>duration</key>
-		<real>1</real>
+		<real>0.25</real>
 	</dict>
 	<dict>
 		<key>duration</key>
-		<real>1</real>
+		<real>0.25</real>
 	</dict>
 	<dict>
 		<key>duration</key>
-		<real>1</real>
+		<real>0.25</real>
 	</dict>
 	<dict>
 		<key>duration</key>
-		<real>1</real>
+		<real>0.25</real>
 	</dict>
 	<dict>
 		<key>duration</key>
-		<real>1</real>
+		<real>0.25</real>
+	</dict>
+	<dict>
+		<key>duration</key>
+		<real>0.25</real>
 	</dict>
 </array>
 </plist>
