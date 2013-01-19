@@ -1,3 +1,3 @@
 //= require_tree ./vendor
-//= require_tree ./scenes
+//= require loading
 //= require init_game
