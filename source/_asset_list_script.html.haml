@@ -1,0 +1,4 @@
+- asset_files = Dir.glob("source/images/*.png").map { |path| File.join("images", File.split(path).last) }
+- asset_files.map! { |x| %Q("#{x}") }
+:javascript
+  var assets = [#{asset_files.join(', ')}]

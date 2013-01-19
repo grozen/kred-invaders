@@ -10,6 +10,7 @@
     %title= data.page.title || "Kred Invaders"
 
     = stylesheet_link_tag "normalize", "all"
+    = partial "asset_list_script"
     = javascript_include_tag  "all"
   %body{class: page_classes}
     = yield
