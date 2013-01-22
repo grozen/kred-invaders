@@ -1,8 +1,10 @@
 - asset_files = Dir.glob("source/images/*.png").map { |path| File.join("images", File.split(path).last) }
 - asset_files.map! { |x| %Q("#{x}") }
 
-- scene_names = Dir.glob("source/javascripts/scenes/*").map { |path| File.basename(path, '.js.coffee') }
-- async_script_files = scene_names.map { |name| %Q("javascripts/scenes/#{name}.js") }
+- async_script_files = []
+- %w[scenes entities].each do |folder|
+  - script_names = Dir.glob("source/javascripts/#{folder}/*").map { |path| File.basename(path, '.js.coffee') }
+  - async_script_files += script_names.map { |name| %Q("javascripts/#{folder}/#{name}.js") }
 :javascript
   var assets = [#{asset_files.join(', ')}]
   var async_scripts = [#{async_script_files.join(', ')}]
