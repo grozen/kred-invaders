@@ -2,7 +2,7 @@
 - asset_files.map! { |x| %Q("#{x}") }
 
 - async_script_files = []
-- %w[scenes entities].each do |folder|
+- %w[scenes components].each do |folder|
   - script_names = Dir.glob("source/javascripts/#{folder}/*").map { |path| File.basename(path, '.js.coffee') }
   - async_script_files += script_names.map { |name| %Q("javascripts/#{folder}/#{name}.js") }
 :javascript
