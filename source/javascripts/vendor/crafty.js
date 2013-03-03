@@ -263,7 +263,7 @@
                 }
             }
 
-            this.trigger("NewComponent", ul);
+            this.trigger("NewComponent", uninit);
             return this;
         },
 
@@ -498,6 +498,8 @@
         *
         * Events are arbitrary and provide communication between components.
         * You can trigger or bind an event even if it doesn't exist yet.
+        *
+        * Unlike DOM events, Crafty events are exectued synchronously.
         * 
         * @example
         * ~~~
@@ -513,6 +515,9 @@
         * @see .trigger, .unbind
         */
         bind: function (event, callback) {
+        
+            // (To learn how the handlers object works, see inline comment at Crafty.bind)
+
             //optimization for 1 entity
             if (this.length === 1) {
                 if (!handlers[event]) handlers[event] = {};
@@ -548,6 +553,7 @@
         * @see .bind, .trigger
         */
         unbind: function (event, callback) {
+            // (To learn how the handlers object works, see inline comment at Crafty.bind)
             this.each(function () {
                 var hdl = handlers[event], i = 0, l, current;
                 //if no events, cancel
@@ -585,8 +591,11 @@
         *
         * The first argument is the event name to trigger and the optional
         * second argument is the arbitrary event data. This can be absolutely anything.
+        *
+        * Unlike DOM events, Crafty events are exectued synchronously.
         */
         trigger: function (event, data) {
+            // (To learn how the handlers object works, see inline comment at Crafty.bind)
             if (this.length === 1) {
                 //find the handlers assigned to the event and entity
                 if (handlers[event] && handlers[event][this[0]]) {
@@ -802,6 +811,7 @@
         stop: function (clearState) {
         	this.timer.stop();
         	if (clearState) {
+        	    Crafty.audio.remove();
         		if (Crafty.stage && Crafty.stage.elem.parentNode) {
         			var newCrStage = document.createElement('div');
         			newCrStage.id = "cr-stage";
@@ -1134,6 +1144,7 @@
         * @see Crafty.bind
         */
         trigger: function (event, data) {
+            // (To learn how the handlers object works, see inline comment at Crafty.bind)
             var hdl = handlers[event], h, i, l;
             //loop over every object bound
             for (h in hdl) {
@@ -1167,6 +1178,26 @@
         * @see Crafty.trigger, Crafty.unbind
         */
         bind: function (event, callback) {
+            
+            // Background: The structure of the global object "handlers"
+            // ---------------------------------------------------------
+            // Here is an example of what "handlers" can look like:
+            // handlers ===
+            //    { Move:  {5:[fnA], 6:[fnB, fnC], global:[fnD]},
+            //     Change: {6:[fnE]}
+            //    }
+            // In this example, when the 'Move' event is triggered on entity #6 (e.g.
+            // entity6.trigger('Move')), it causes the execution of fnB() and fnC(). When
+            // the Move event is triggered globally (i.e. Crafty.trigger('Move')), it
+            // will execute fnA, fnB, fnC, fnD.
+            // 
+            // In this example, "this" is bound to entity #6 whenever fnB() is executed, and
+            // "this" is bound to Crafty whenever fnD() is executed.
+            //
+            // In other words, the structure of "handlers" is:
+            //
+            // handlers[event][entityID or 'global'] === (Array of callback functions)
+
             if (!handlers[event]) handlers[event] = {};
             var hdl = handlers[event];
 
@@ -1186,6 +1217,7 @@
         * Unbind any event from any entity or global event.
         */
         unbind: function (event, callback) {
+            // (To learn how the handlers object works, see inline comment at Crafty.bind)
             var hdl = handlers[event], h, i, l;
 
             //loop over every object bound
@@ -2914,10 +2946,10 @@ Crafty.c("Collision", {
 	* @comp Collision
 	* @sign public this .onHit(String component, Function hit[, Function noHit])
 	* @param component - Component to check collisions for
-	* @param hit - Callback method to execute when collided with component
+	* @param hit - Callback method to execute upon collision with component.  Will be passed the results of the collision check in the same format documented for hit().
 	* @param noHit - Callback method executed once as soon as collision stops
 	* 
-	* Creates an enterframe event calling .hit() each time and if collision detected will invoke the callback.
+	* Creates an EnterFrame event calling .hit() each frame.  When a collision is detected the callback will be invoked.  
 	* 
 	* @see .hit
 	*/
@@ -3273,7 +3305,7 @@ Crafty.c("DOM", {
 			prefix = Crafty.support.prefix,
 			trans = [];
 
-		if (this._cssStyles.visibility != this._visible) {
+		if (this._cssStyles.visibility !== this._visible) {
 			this._cssStyles.visibility = this._visible;
 			if (!this._visible) {
 				style.visibility = "hidden";
@@ -3286,30 +3318,30 @@ Crafty.c("DOM", {
 		if (Crafty.support.css3dtransform) {
 			trans.push("translate3d(" + (~~this._x) + "px," + (~~this._y) + "px,0)");
 		} else {
-			if (this._cssStyles.left != this._x) {
+			if (this._cssStyles.left !== this._x) {
 				this._cssStyles.left = this._x;
 				style.left = ~~(this._x) + "px";
 			}
-			if (this._cssStyles.top != this._y) {
+			if (this._cssStyles.top !== this._y) {
 				this._cssStyles.top = this._y;
 				style.top = ~~(this._y) + "px";
 			}
 		}
 
-		if (this._cssStyles.width != this._w) {
+		if (this._cssStyles.width !== this._w) {
 			this._cssStyles.width = this._w;
 			style.width = ~~(this._w) + "px";
 		}
-		if (this._cssStyles.height != this._h) {
+		if (this._cssStyles.height !== this._h) {
 			this._cssStyles.height = this._h;
 			style.height = ~~(this._h) + "px";
 		}
-		if (this._cssStyles.zIndex != this._z) {
+		if (this._cssStyles.zIndex !== this._z) {
 			this._cssStyles.zIndex = this._z;
 			style.zIndex = this._z;
 		}
 
-		if (this._cssStyles.opacity != this._alpha) {
+		if (this._cssStyles.opacity !== this._alpha) {
 			this._cssStyles.opacity = this._alpha;
 			style.opacity = this._alpha;
 			style[prefix + "Opacity"] = this._alpha;
@@ -3922,13 +3954,14 @@ Crafty.storage = (function () {
 	if (typeof indexedDB != 'object') {
 		window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
 		window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction;
+		window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange
 		
 		/* Numeric constants for transaction type are deprecated
 		 * Ensure that the script will work consistenly for recent and legacy browser versions
 		 */
 		if (typeof IDBTransaction == 'object') {
-			transactionType.READ = IDBTransaction.READ || IDBTransaction.readonly || transactionType.READ;
-			transactionType.READ_WRITE = IDBTransaction.READ_WRITE || IDBTransaction.readwrite || transactionType.READ_WRITE;
+			transactionType.READ = IDBTransaction.READ || IDBTransaction.readonly || transactionType.READ || 'read';
+			transactionType.READ_WRITE = IDBTransaction.READ_WRITE || IDBTransaction.readwrite || transactionType.READ_WRITE || 'readwrite';
 		}
 	}
 
@@ -3953,9 +3986,11 @@ Crafty.storage = (function () {
 					var request = indexedDB.open(gameName);
 					request.onsuccess = function (e) {
 						db = e.target.result;
-						createStores();
 						getTimestamps();
 						openExternal();
+					};
+					request.onupgradeneeded = function (e) {
+						createStores();
 					};
 				}
 				else {
@@ -3967,7 +4002,7 @@ Crafty.storage = (function () {
 				// get all the timestamps for existing keys
 				function getTimestamps() {
 					try {
-						var trans = db.transaction(['save'], transactionType.READ),
+						var trans = db.transaction(['save'], "read"),
 						store = trans.objectStore('save'),
 						request = store.getAll();
 						request.onsuccess = function (e) {
@@ -3987,13 +4022,13 @@ Crafty.storage = (function () {
 						for (var i = 0; i < stores.length; i++) {
 							var st = stores[i];
 							if (db.objectStoreNames.contains(st)) continue;
-							db.createObjectStore(st, { keyPath: "key" });
+							var store = db.createObjectStore(st, { keyPath: "key" });
 						}
 					};
 				}
 			},
 
-			save: function (key, type, data) {
+			save: function (key, type, data, callback) {
 				if (db == null) {
 					setTimeout(function () { Crafty.storage.save(key, type, data); }, 1);
 					return;
@@ -4002,13 +4037,14 @@ Crafty.storage = (function () {
 				var str = serialize(data), t = ts();
 				if (type == 'save')	saveExternal(key, str, t);
 				try {
-					var trans = db.transaction([type], transactionType.READ_WRITE),
-					store = trans.objectStore(type),
-					request = store.put({
+					var request = db.transaction([type], transactionType.READ_WRITE).objectStore(type).add({
 						"data": str,
 						"timestamp": t,
 						"key": key
 					});
+					if (typeof callback == 'function') {
+						request.onsuccess = callback;
+					}
 				}
 				catch (e) {
 					console.error(e);
@@ -4021,9 +4057,7 @@ Crafty.storage = (function () {
 					return;
 				}
 				try {
-					var trans = db.transaction([type], transactionType.READ),
-					store = trans.objectStore(type),
-					request = store.get(key);
+					var request = db.transaction([type], transactionType.READ).objectStore(type).get(key);
 					request.onsuccess = function (e) {
 						callback(unserialize(e.target.result.data));
 					};
@@ -4038,10 +4072,8 @@ Crafty.storage = (function () {
 					setTimeout(function () { Crafty.storage.getAllkeys(type, callback); }, 1);
 				}
 				try {
-					var trans = db.transaction([type], transactionType.READ),
-					store = trans.objectStore(type),
-					request = store.getCursor(),
-					res = [];
+					var request = db.transaction([type], transactionType.READ).objectStore(type).openCursor(),
+						res = [];
 					request.onsuccess = function (e) {
 						var cursor = e.target.result;
 						if (cursor) {
@@ -4412,7 +4444,7 @@ Crafty.extend({
     * @param paddingY - Vertical space in between tiles. Defaults to paddingX.
     * Generates components based on positions in a sprite image to be applied to entities.
     *
-    * Accepts a tile size, URL and map for the name of the sprite and it's position.
+    * Accepts a tile size, URL and map for the name of the sprite and its position.
     *
     * The position must be an array containing the position of the sprite where index `0`
     * is the `x` position, `1` is the `y` position and optionally `2` is the width and `3`
@@ -4424,12 +4456,36 @@ Crafty.extend({
     *
     * Entities that add the generated components are also given a component called `Sprite`.
     * 
+    * @example
+    * ~~~
+    * Crafty.sprite("imgs/spritemap6.png", {flower:[0,0,20,30]});
+    * var flower_entity = Crafty.e("2D, DOM, flower");
+    * ~~~
+    * The first line creates a component called `flower` associated with the sub-image of
+    * spritemap6.png with top-left corner (0,0), width 20 pixels, and height 30 pixels.
+    * The second line creates an entity with that image. (Note: `Crafty.e("flower, 2D, DOM")`
+    * would NOT work. When the `2D` component is assigned, it erases the width and height
+    * information. So you should list `2D` before `flower`.)
+    * ~~~
+    * Crafty.sprite(50, "imgs/spritemap6.png", {flower:[0,0], grass:[0,1,3,1]});
+    * ~~~
+    * In this case, the `flower` component is pixels 0 <= x < 50, 0 <= y < 50, and the
+    * `grass` component is pixels 0 <= x < 150, 50 <= y < 100. (The `3` means grass has a
+    * width of 3 tiles, i.e. 150 pixels.)
+    * ~~~
+    * Crafty.sprite(50, 100, "imgs/spritemap6.png", {flower:[0,0], grass:[0,1]}, 10);
+    * ~~~
+    * In this case, each tile is 50x100, and there is a spacing of 10 pixels between
+    * consecutive tiles. So `flower` is pixels 0 <= x < 50, 0 <= y < 100, and `grass` is
+    * pixels 0 <= x < 50, 110 <= y < 210.
+    * 
     * @see Sprite
     */
     sprite: function (tile, tileh, url, map, paddingX, paddingY) {
         var spriteName, temp, x, y, w, h, img;
 
-        //if no tile value, default to 1
+        //if no tile value, default to 1.
+        //(if the first passed argument is a string, it must be the url.)
         if (typeof tile === "string") {
             paddingY = paddingX;
             paddingX = map;
@@ -6217,15 +6273,22 @@ Crafty.extend({
 			Crafty.trigger("KeyUp", e);
 		}
 
-		//prevent default actions for all keys except backspace and F1-F12.
+		//prevent default actions for all keys except backspace and F1-F12 and except actions in INPUT and TEXTAREA.
+		//prevent bubbling up for all keys except backspace and F1-F12.
 		//Among others this prevent the arrow keys from scrolling the parent page
 		//of an iframe hosting the game
 		if(Crafty.selected && !(e.key == 8 || e.key >= 112 && e.key <= 135)) {
 			if(e.stopPropagation) e.stopPropagation();
             else e.cancelBubble = true;
 
-			if(e.preventDefault) e.preventDefault();
-			else e.returnValue = false;
+			//Don't prevent default actions if target node is input or textarea.
+			if(e.target.nodeName !== 'INPUT' && e.target.nodeName !== 'TEXTAREA'){
+				if(e.preventDefault){
+					e.preventDefault();
+				} else {
+					e.returnValue = false;
+				}
+			}
 			return false;
 		}
 	}
@@ -6533,7 +6596,9 @@ Crafty.c("Draggable", {
 	*/
 	disableDrag: function () {
 		this.unbind("MouseDown", this._ondown);
-		this.stopDrag();
+		if (this._dragging) {
+			this.stopDrag();
+		}
 		return this;
 	}
 });
@@ -6775,9 +6840,9 @@ Crafty.c("Twoway", {
 	/**@
 	* #.twoway
 	* @comp Twoway
-	* @sign public this .twoway(Number speed[, Number jumpSpeed])
+	* @sign public this .twoway(Number speed[, Number jump])
 	* @param speed - Amount of pixels to move left or right
-	* @param jumpSpeed - How high the entity should jump
+	* @param jump - Vertical jump speed
 	* 
 	* Constructor to initialize the speed and power of jump. Component will
 	* listen for key events and move the entity appropriately. This includes
@@ -6802,7 +6867,7 @@ Crafty.c("Twoway", {
 		});
 
 		if (speed) this._speed = speed;
-		jump = jump || this._speed * 2;
+		if (arguments.length<2) jump = this._speed * 2;	
 
 		this.bind("EnterFrame", function () {
 			if (this.disableControls) return;
@@ -6898,30 +6963,42 @@ Crafty.c("Animation", {
 /**@
 * #SpriteAnimation
 * @category Animation
-* @trigger AnimationEnd - When the animation finishes - { reel }
-* @trigger Change - On each frame
+* @trigger AnimationEnd - When the animation finishes - { reelId: <reelID> }
+* @trigger FrameChange - Each frame change - { reelId: <reelID>, frameNumber: <New frame's number> }
 *
-* Used to animate sprites by changing the sprites in the sprite map.
+* Used to animate sprites by treating a sprite map as a set of animation frames.
+* Must be applied to an entity that has a sprite-map component.
 *
+* @see crafty.sprite
 */
 Crafty.c("SpriteAnimation", {
-/**@
+	/**@
 	* #._reels
 	* @comp SpriteAnimation
 	*
-	* A map consists of arrays that contains the coordinates of each frame within the sprite, e.g.,
-    * `{"walk_left":[[96,48],[112,48],[128,48]]}`
+	* A map in which the keys are the names assigned to animations defined using
+	* the component (also known as reelIDs), and the values are objects describing
+	* the animation and its state.
 	*/
 	_reels: null,
-	_frame: null,
 
 	/**@
 	* #._currentReelId
 	* @comp SpriteAnimation
 	*
-	* The current playing reel (one element of `this._reels`). It is `null` if no reel is playing.
+	* The reelID of the currently active reel (which is one of the elements in `this._reels`).
+	* This value is `null` if no reel is active. Some of the component's actions can be invoked
+	* without specifying a reel, in which case they will work on the active reel.
 	*/
 	_currentReelId: null,
+
+	/**@
+	* #._isPlaying
+	* @comp SpriteAnimation
+	*
+	* Whether or not an animation is currently playing.
+	*/
+	_isPlaying: false,
 
 	init: function () {
 		this._reels = {};
@@ -6932,113 +7009,195 @@ Crafty.c("SpriteAnimation", {
 	* @comp SpriteAnimation
 	* @sign public this .animate(String reelId, Number fromX, Number y, Number toX)
 	* @param reelId - ID of the animation reel being created
-	* @param fromX - Starting `x` position (in the unit of sprite horizontal size) on the sprite map
-	* @param y - `y` position on the sprite map (in the unit of sprite vertical size). Remains constant through the animation.
-	* @param toX - End `x` position on the sprite map (in the unit of sprite horizontal size)
+	* @param fromX - Starting `x` position on the sprite map (x's unit is the horizontal size of the sprite in the sprite map).
+	* @param y - `y` position on the sprite map (y's unit is the horizontal size of the sprite in the sprite map). Remains constant through the animation.
+	* @param toX - End `x` position on the sprite map. This can be smaller than `fromX`, in which case the frames will play in descending order.
 	* @sign public this .animate(String reelId, Array frames)
 	* @param reelId - ID of the animation reel being created
-	* @param frames - Array of arrays containing the `x` and `y` values: [[x1,y1],[x2,y2],...]
-	* @sign public this .animate(String reelId, Number duration[, Number repeatCount])
-	* @param reelId - ID of the animation reel to play
-	* @param duration - Play the animation within a duration (in frames)
-	* @param repeatCount - number of times to repeat the animation. Use -1 for infinitely
+	* @param frames - Array of arrays containing the `x` and `y` values of successive frames: [[x1,y1],[x2,y2],...] (the values are in the unit of the sprite map's width/height respectively).
 	*
-	* Method to setup animation reels or play pre-made reels. Animation works by changing the sprites over
-	* a duration. Only works for sprites built with the Crafty.sprite methods. See the Tween component for animation of 2D properties.
+	* Method to setup animation reels. Animation works by changing the sprites over
+	* a duration. Only works for sprites built with the Crafty.sprite methods.
+	* See the Tween component for animation of 2D properties.
 	*
 	* To setup an animation reel, pass the name of the reel (used to identify the reel and play it later), and either an
 	* array of absolute sprite positions or the start x on the sprite map, the y on the sprite map and then the end x on the sprite map.
 	*
-	* To play a reel, pass the name of the reel and the duration it should play for (in frames). If you need
-	* to repeat the animation, simply pass in the amount of times the animation should repeat. To repeat
-	* forever, pass in `-1`.
-	*
 	* @example
 	* ~~~
+	*\/\/ Define a sprite-map component
 	* Crafty.sprite(16, "images/sprite.png", {
 	*     PlayerSprite: [0,0]
 	* });
 	*
-	* Crafty.e("2D, DOM, SpriteAnimation, PlayerSprite")
-	*     .animate('PlayerRunning', 0, 0, 3) //setup animation
-	*     .animate('PlayerRunning', 15, -1) // start animation
+	* \/\/ Define an animation on the second row of the sprite map (y = 1)
+	* \/\/ from the left most sprite (fromX = 0) to the fourth sprite
+	* \/\/ on that row (toX = 3)
+	* Crafty.e("2D, DOM, SpriteAnimation, PlayerSprite").animate('PlayerRunning', 0, 1, 3);
 	*
-	* Crafty.e("2D, DOM, SpriteAnimation, PlayerSprite")
-	*     .animate('PlayerRunning', 0, 3, 0) //setup animation
-	*     .animate('PlayerRunning', 15, -1) // start animation
+	* \/\/ This is the same animation definition, but using the alternative method
+	* Crafty.e("2D, DOM, SpriteAnimation, PlayerSprite").animate('PlayerRunning', [[0, 1], [1, 1], [2, 1], [3, 1]]);
 	* ~~~
-	*
-	* @see crafty.sprite
 	*/
-	animate: function (reelId, fromx, y, tox) {
-		var reel, i, tile, tileh, duration, pos;
+	animate: function (reelId, fromX, y, toX) {
+		var reel, i, tile, tileh, pos;
 
-		//play a reel
-		//.animate('PlayerRunning', 15, -1) // start animation
-		if (arguments.length < 4 && typeof fromx === "number") {
-			duration = fromx;
+		// Get the dimensions of a single frame, as defind in Sprite component.
+		tile = this.__tile + parseInt(this.__padding[0] || 0, 10);
+		tileh = this.__tileh + parseInt(this.__padding[1] || 0, 10);
 
-			//make sure not currently animating
-			this._currentReelId = reelId;
-
-			currentReel = this._reels[reelId];
-
-			this._frame = {
-				currentReel: currentReel,
-				numberOfFramesBetweenSlides: Math.ceil(duration / currentReel.length),
-				currentSlideNumber: 0,
-				frameNumberBetweenSlides: 0,
-				repeat: 0
-			};
-			if (arguments.length === 3 && typeof y === "number") {
-				//User provided repetition count
-				if (y === -1) this._frame.repeatInfinitly = true;
-				else this._frame.repeat = y;
-			}
-
-			pos = this._frame.currentReel[0];
-			this.__coord[0] = pos[0];
-			this.__coord[1] = pos[1];
-
-			this.bind("EnterFrame", this.updateSprite);
-			return this;
+		reel = {
+			frames: [],
+			cyclesPerFrame: undefined, // This gets defined when calling play(...)
+			currentFrameNumber: 0,
+			cycleNumber: 0,
+			repeatInfinitly: false,
+			repeatsRemaining: 0
 		}
-		// .animate('PlayerRunning', 0, 0, 3) //setup animation
-		if (typeof fromx === "number") {
-			// Defind in Sprite component.
-			tile = this.__tile + parseInt(this.__padding[0] || 0, 10);
-			tileh = this.__tileh + parseInt(this.__padding[1] || 0, 10);
 
-			reel = [];
-			i = fromx;
-			if (tox > fromx) {
-				for (; i <= tox; i++) {
-					reel.push([i * tile, y * tileh]);
-				}
-			} else {
-				for (; i >= tox; i--) {
-					reel.push([i * tile, y * tileh]);
+		// @sign public this .animate(String reelId, Number fromX, Number y, Number toX)
+		if (typeof fromX === "number") {
+			i = fromX;
+			if (toX > fromX) {
+				for (; i <= toX; i++) {
+					reel.frames.push([i * tile, y * tileh]);
 				}
 			}
-
-			this._reels[reelId] = reel;
-		} else if (typeof fromx === "object") {
-			// @sign public this .animate(reelId, [[x1,y1],[x2,y2],...])
+			else {
+				for (; i >= toX; i--) {
+					reel.frames.push([i * tile, y * tileh]);
+				}
+			}
+		}
+		// @sign public this .animate(String reelId, Array frames)
+		else if (arguments.length === 2) {
 			i = 0;
-			reel = [];
-			tox = fromx.length - 1;
-			tile = this.__tile + parseInt(this.__padding[0] || 0, 10);
-			tileh = this.__tileh + parseInt(this.__padding[1] || 0, 10);
+			toX = fromX.length - 1;
 
-			for (; i <= tox; i++) {
-				pos = fromx[i];
-				reel.push([pos[0] * tile, pos[1] * tileh]);
+			for (; i <= toX; i++) {
+				pos = fromX[i];
+				reel.frames.push([pos[0] * tile, pos[1] * tileh]);
 			}
-
-			this._reels[reelId] = reel;
+		}
+		else {
+			throw "Urecognized arguments. Please see the documentation for 'animate(...)'.";
 		}
 
+		this._reels[reelId] = reel;
 		return this;
+	},
+
+	/**@
+	* #.play
+	* @sign public this .play(String reelId, Number duration[, Number repeatCount, Number fromFrame])
+	* @param reelId - ID of the animation reel to play
+	* @param duration - Play the animation within a duration (in frames)
+	* @param repeatCount - Number of times to repeat the animation (it will play repeatCount + 1 times). Use -1 to repeat indefinitely.
+	* @param fromFrame - Frame to start the animation at. If not specified, resumes from the current reel position.
+	*
+	* Play one of the reels previously defined by calling `.animate(...)`. Simply pass the name of the reel
+	* and the amount of frames the animations should take to play from start to finish. If you wish the
+	* animation to play multiple times in succession, pass in the amount of times as an additional parameter.
+	* To have the animation repeat indefinitely, pass in `-1`. Finally, you can start the animation at a specific
+	* frame by supplying an additional optional argument.
+	*
+	* If another animation is currently playing, it will be paused.
+	*
+	* If you simply wish to resume a previously paused animation without having to specify the duration again,
+	* supply `null` as the duration.
+	*
+	* Once an animation ends, it will remain at its last frame. Call `.reset(...)` to reset a reel to its first
+	* frame, or play the reel from a specific frame. Attempting to play the reel again otherwise will result in
+	* the animation ending immediately.
+	*
+	* If you play the animation from a certain frame and specify a repeat count, the animation will reset to its
+	* first frame when repeating (and not to the frame you started the animation at).
+	*
+	* @example
+	* ~~~
+	*\/\/ Define a sprite-map component
+	* Crafty.sprite(16, "images/sprite.png", {
+	*     PlayerSprite: [0,0]
+	* });
+	*
+	* \/\/ Play the animation across 20 frame (so each sprite in the 4 sprite animation should be seen for 5 frames) and repeat indefinitely
+	* Crafty.e("2D, DOM, SpriteAnimation, PlayerSprite")
+	*     .animate('PlayerRunning', 0, 0, 3) // setup animation
+	*     .play('PlayerRunning', 20, -1); // start animation
+	* ~~~
+	*/
+	play: function(reelId, duration, repeatCount, fromFrame) {
+		var pos;
+
+		currentReel = this._reels[reelId];
+
+		if (currentReel === undefined) {
+			throw "The supplied reelId, " + reelId + ", is not recognized.";
+		}
+
+		this.pause(); // This will pause the current animation, if one is playing
+
+		this._currentReelId = reelId;
+
+		if (duration !== null) {
+			currentReel.cyclesPerFrame = Math.ceil(duration / currentReel.frames.length);
+		}
+
+		if (repeatCount == null) {
+			currentReel.repeatsRemaining = 0;
+		}
+		else {
+			// User provided repetition count
+			if (repeatCount === -1) {
+				currentReel.repeatInfinitly = true;
+			}
+			else {
+				currentReel.repeatsRemaining = repeatCount;
+			}
+		}
+
+		if (fromFrame != null) {
+			if (fromFrame >= currentReel.frames.length) {
+				throw "The request frame exceeds the reel length.";
+			}
+			else {
+				currentReel.currentFrameNumber = fromFrame;
+				currentReel.cycleNumber = 0;
+			}
+		}
+
+		this.trigger("FrameChange", { reelId: this._currentReelId, frameNumber: currentReel.currentFrameNumber });
+		this.trigger("Change"); // Needed to trigger a redraw
+
+		pos = currentReel.frames[currentReel.currentFrameNumber];
+		this.__coord[0] = pos[0];
+		this.__coord[1] = pos[1];
+
+		this.bind("EnterFrame", this.updateSprite);
+		this._isPlaying = true;
+		return this;
+	},
+
+	/**@
+	* #.resume
+	* @comp SpriteAnimation
+	* @sign public this .resume([String reelId])
+	* @param reelId - ID of the animation to continue playing
+	*
+	* This is simply a convenience method and is identical to calling `.play(reelId, null)`.
+	* You can call this method with no arguments to resume the last animation that played.
+	*/
+	resume: function(reelId) {
+		if (reelId == null) {
+			if (this._currentReelId !== null) {
+				return this.play(this._currentReelId, null);
+			}
+			else {
+				throw "There is no animation to resume.";
+			}
+		}
+
+		return this.play(reelId, null);
 	},
 
 	/**@
@@ -7046,61 +7205,56 @@ Crafty.c("SpriteAnimation", {
 	* @comp SpriteAnimation
 	* @sign private void .updateSprite()
 	*
-	* This is called at every `EnterFrame` event when `.animate()` enables animation. It update the SpriteAnimation component when the slide in the sprite should be updated.
+	* This method is called at every `EnterFrame` event when an animation is playing. It manages the animation
+	* as time progresses.
 	*
-	* @example
-	* ~~~
-	* this.bind("EnterFrame", this.updateSprite);
-	* ~~~
-	*
-	* @see crafty.sprite
+	* You shouldn't call this method directly.
 	*/
 	updateSprite: function () {
-		var data = this._frame;
-		if (!data) {
-			return;
-		}
+		var currentReel = this._reels[this._currentReelId];
 
-		if (this._frame.frameNumberBetweenSlides++ === data.numberOfFramesBetweenSlides) {
-			var pos = data.currentReel[data.currentSlideNumber++];
+		// Track the amount of update cycles a frame is displayed
+		currentReel.cycleNumber++;
 
-			this.__coord[0] = pos[0];
-			this.__coord[1] = pos[1];
-			this._frame.frameNumberBetweenSlides = 0;
-		}
+		if (currentReel.cycleNumber === currentReel.cyclesPerFrame) {
+			currentReel.currentFrameNumber++;
+			currentReel.cycleNumber = 0;
 
-
-		if (data.currentSlideNumber === data.currentReel.length) {
-			
-			if (this._frame.repeatInfinitly === true || this._frame.repeat > 0) {
-				if (this._frame.repeat) this._frame.repeat--;
-				this._frame.frameNumberBetweenSlides = 0;
-				this._frame.currentSlideNumber = 0;
-			} else {
-				if (this._frame.frameNumberBetweenSlides === data.numberOfFramesBetweenSlides) {
-				    this.trigger("AnimationEnd", { reel: data.currentReel });
-				    this.stop();
-				    return;
-                }
+			// If we went through the reel, loop the animation or end it
+			if (currentReel.currentFrameNumber >= currentReel.frames.length) {
+				if (currentReel.repeatInfinitly === true || currentReel.repeatsRemaining > 0) {
+					currentReel.repeatsRemaining--;
+					currentReel.currentFrameNumber = 0;
+				}
+				else {
+					currentReel.currentFrameNumber = currentReel.frames.length - 1;
+					this.trigger("AnimationEnd", { reelId: this._currentReelId });
+					this.pause();
+					return;
+				}
 			}
 
+			this.trigger("FrameChange", { reelId: this._currentReelId, frameNumber: currentReel.currentFrameNumber });
+			this.trigger("Change"); // Needed to trigger a redraw
 		}
 
-		this.trigger("Change");
+		// Update the displayed sprite
+		var pos = currentReel.frames[currentReel.currentFrameNumber];
+
+		this.__coord[0] = pos[0];
+		this.__coord[1] = pos[1];
 	},
 
 	/**@
-	* #.stop
+	* #.pause
 	* @comp SpriteAnimation
-	* @sign public this .stop(void)
+	* @sign public this .pause(void)
 	*
-	* Stop any animation currently playing.
+	* Pauses the currently playing animation, or does nothing if no animation is playing.
 	*/
-	stop: function () {
+	pause: function () {
 		this.unbind("EnterFrame", this.updateSprite);
-		this.unbind("AnimationEnd");
-		this._currentReelId = null;
-		this._frame = null;
+		this._isPlaying = false;
 
 		return this;
 	},
@@ -7108,17 +7262,61 @@ Crafty.c("SpriteAnimation", {
 	/**@
 	* #.reset
 	* @comp SpriteAnimation
-	* @sign public this .reset(void)
+	* @sign public this .reset([String reelId, Number frameToDisplay])
+	* @param reelId - ID of the animation to reset
+	* @param frameToDisplay - The frame to show after resetting the animation. 0 based.
 	*
-	* Method will reset the entities sprite to its original.
+	* Resets the specified animation and displays one of its frames. If no reelId is specified,
+	* resets the currently playing animation (or does nothing if no animation is playing).
+	*
+	* By default, will have the animation display its first frame. When playing an animation, it
+	* will continue from the frame it was reset to.
+	*
+	* Specify null as the reelId if you only want to specify the frame on the
+	* current animation.
+	*
+	* If an animation ends up being reset and an animation was playing, the animation that was
+	* playing will be paused.
+	*
+	* Keep in mind that resetting an animation will set the animation's state to the one it had
+	* just after defining it using `animate(...)`.
 	*/
-	reset: function () {
-		if (!this._frame) return this;
+	reset: function (reelId, frameToDisplay) {
+		var reelToReset = this._reels[reelId];
 
-		var co = this._frame.currentReel[0];
-		this.__coord[0] = co[0];
-		this.__coord[1] = co[1];
-		this.stop();
+		if (reelId == null) {
+			if (this._currentReelId !== null) {
+				reelToReset = this._reels[this._currentReelId];
+			}
+			else {
+				return this;
+			}
+		}
+
+		if (frameToDisplay == null) {
+			frameToDisplay = 0;
+		}
+
+		if (reelToReset === undefined) {
+			throw "The supplied reelId, " + reelId + ", is not recognized.";
+		}
+		if (frameToDisplay >= reelToReset.frames.length) {
+			throw "The request frame exceeds the reel length.";
+		}
+
+		this.pause();
+
+		reelToReset.cyclesPerFrame = undefined;
+		reelToReset.currentFrameNumber = frameToDisplay;
+		reelToReset.cycleNumber = 0;
+		reelToReset.repeatInfinitly = false;
+		reelToReset.repeatsRemaining = 0;
+
+		this.trigger("Change"); // Needed to trigger a redraw
+
+		var pos = reelToReset.frames[frameToDisplay];
+		this.__coord[0] = pos[0];
+		this.__coord[1] = pos[1];
 
 		return this;
 	},
@@ -7127,20 +7325,39 @@ Crafty.c("SpriteAnimation", {
 	* #.isPlaying
 	* @comp SpriteAnimation
 	* @sign public Boolean .isPlaying([String reelId])
-	* @param reelId - Determine if the animation reel with this reelId is playing.
+	* @param reelId - The reelId of the reel we wish to examine
 	*
-	* Determines if an animation is currently playing. If a reel is passed, it will determine
-	* if the passed reel is playing.
+	* Determines if the specified animation is currently playing. If no reelId is specified,
+	* checks if any animation is playing.
 	*
 	* @example
 	* ~~~
-	* myEntity.isPlaying() //is any animation playing
-	* myEntity.isPlaying('PlayerRunning') //is the PlayerRunning animation playing
+	* myEntity.isPlaying() // is any animation playing
+	* myEntity.isPlaying('PlayerRunning') // is the PlayerRunning animation playing
 	* ~~~
 	*/
 	isPlaying: function (reelId) {
+		if (!this._isPlaying) return false;
+
 		if (!reelId) return !!this._currentReelId;
 		return this._currentReelId === reelId;
+	},
+
+	/**@
+	* #.getActiveReel
+	* @comp SpriteAnimation
+	* @sign public { id: String, frame: Number } .getActiveReel()
+	*
+	* Returns information about the active reel, the one methods will work on when the reel ID is
+	* not specified.
+	* Returns an object containing the reel's ID and the number of the frame displayed at
+	* the time this method was called. If no reel is active, returns an object with a reel ID
+	* of null (this will only happen if no animation has been played yet).
+	*/
+	getActiveReel: function () {
+		if (!this._currentReelId) return { id: null, frame: 0 };
+
+		return { id: this._currentReelId, frame: this._reels[this._currentReelId].currentFrameNumber };
 	}
 });
 
@@ -7229,7 +7446,6 @@ function tweenEnterFrame(e) {
 		}
 	}
 }
-
 
 
 /**@
@@ -7433,7 +7649,7 @@ Crafty.c("Image", {
 });
 
 Crafty.extend({
-	_scenes: [],
+	_scenes: {},
 	_current: null,
 
 	/**@
@@ -7450,22 +7666,50 @@ Crafty.extend({
 	* Method to create scenes on the stage. Pass an ID and function to register a scene.
 	*
 	* To play a scene, just pass the ID. When a scene is played, all
-	* entities with the `2D` component on the stage are destroyed.
+	* previously-created entities with the `2D` component are destroyed. The
+	* viewport is also reset.
 	*
-	* If you want some entities to persist over scenes (as in not be destroyed)
+	* If you want some entities to persist over scenes (as in, not be destroyed)
 	* simply add the component `Persist`.
 	*
 	* @example
 	* ~~~
-	* Crafty.scene("loading", function() {});
+	* Crafty.scene("loading", function() {
+	*     Crafty.background("#000");
+	*     Crafty.e("2D, DOM, Text")
+	*           .attr({ w: 100, h: 20, x: 150, y: 120 })
+	*           .text("Loading")
+	*           .css({ "text-align": "center", "color": "#FFF" });
+	* });
 	*
-	* Crafty.scene("loading", function() {}, function() {});
-	*
+	* Crafty.scene("UFO_dance",
+	*              function() {Crafty.background("#444"); Crafty.e("UFO");},
+	*              function() {...send message to server...});
+	* ~~~
+	* This defines (but does not play) two scenes as discussed below.
+	* ~~~
 	* Crafty.scene("loading");
 	* ~~~
+	* This command will clear the stage by destroying all `2D` entities (except
+	* those with the `Persist` component). Then it will set the background to
+	* black and display the text "Loading".
+	* ~~~
+	* Crafty.scene("UFO_dance");
+	* ~~~
+	* This command will clear the stage by destroying all `2D` entities (except
+	* those with the `Persist` component). Then it will set the background to
+	* gray and create a UFO entity. Finally, the next time the game encounters
+	* another command of the form `Crafty.scene(scene_name)` (if ever), then the
+	* game will send a message to the server.
 	*/
 	scene: function (name, intro, outro) {
-		//play scene
+		// ---FYI---
+		// this._current is the name (ID) of the scene in progress.
+		// this._scenes is an object like the following:
+		// {'Opening scene': {'initialize': fnA, 'uninitialize': fnB},
+		//  'Another scene': {'initialize': fnC, 'uninitialize': fnD}}
+		
+		// If there's one argument, play the scene
 		if (arguments.length === 1) {
 			Crafty.viewport.reset();
 			Crafty("2D").each(function () {
@@ -7482,9 +7726,10 @@ Crafty.extend({
 			Crafty.trigger("SceneChange", { oldScene: oldScene, newScene: name });
 			return;
 		}
-		//add scene
-		this._scenes[name] = {}
-		this._scenes[name].initialize = intro
+		
+		// If there is more than one argument, add the scene information to _scenes
+		this._scenes[name] = {};
+		this._scenes[name].initialize = intro;
 		if (typeof outro !== 'undefined') {
 			this._scenes[name].uninitialize = outro;
 		}
@@ -8585,6 +8830,43 @@ Crafty.extend({
 				}
 			}, true);
 		},
+	    /**@
+		 * #Crafty.audio.remove
+		 * @comp Crafty.audio
+		 * @sign public this Crafty.audio.remove([String id])
+		 * @param id - A string to refer to sounds
+		 *
+		 * Will stop the sound and remove all references to the audio object allowing the browser to free the memory.
+         * If no id is given, all sounds will be removed.
+		 *
+		 * @example
+		 * ~~~
+		 * Crafty.audio.remove("walk");
+		 * ~~~
+		 */
+		remove: function (id) {
+		    if (!Crafty.support.audio)
+		        return;
+
+		    var s;
+
+		    if (!id) {
+		        for (var i in this.sounds) {
+		            s = this.sounds[i];
+		            Crafty.audio.stop(id);
+		            delete Crafty.assets[s.obj.src];
+		            delete Crafty.audio.sounds[id];
+		        }
+		        return;
+		    }
+		    if (!this.sounds[id])
+		        return;
+
+		    s = this.sounds[id];
+		    Crafty.audio.stop(id);
+		    delete Crafty.assets[s.obj.src];
+		    delete Crafty.audio.sounds[id];
+		},
 		/**@
 		 * #Crafty.audio.stop
 		 * @sign public this Crafty.audio.stop([Number ID])
@@ -8755,7 +9037,14 @@ Crafty.extend({
 * @category Graphics
 * @trigger Change - when the text is changed
 * @requires Canvas or DOM
-* Component to draw text inside the body of an entity.
+* Component to make a text entity.
+* 
+* Note: An entity with the text component is just text! If you want to write text
+* inside an image, you need one entity for the text and another entity for the image.
+* More tips for writing text inside an image: (1) Use the z-index (from 2D component)
+* to ensure that the text is on top of the image, not the other way around; (2)
+* use .attach() (from 2D component) to glue the text to the image so they move and
+* rotate together.
 */
 Crafty.c("Text", {
 	_text: "",
@@ -9109,6 +9398,7 @@ Crafty.extend({
                     Crafty.asset(current, obj);   
                 }
                 obj.onload=pro;
+                obj.src = ""; // workaround for webkit bug
                 obj.src = current; //setup src after onload function Opera/IE Bug
              
             } else {
@@ -10372,11 +10662,13 @@ Crafty.c("Delay", {
 		this._delays = [];
 		this.bind("EnterFrame", function() {
 			var now = new Date().getTime();
-			for(var index in this._delays) {
+			for (var index = 0; index < this._delays.length; index++) {
 				var item = this._delays[index];
-				if(!item.triggered && item.start + item.delay + item.pause < now) {
-					item.triggered=true;
+				if(item.start + item.delay + item.pause < now) {
 					item.func.call(this);
+					// remove item from array
+					this._delays.splice(index,1);
+					index--;
 				}
 			}
 		});
@@ -10394,7 +10686,7 @@ Crafty.c("Delay", {
 			}
 		});
 	},
-    /**@
+	/**@
 	* #.delay
 	* @comp Crafty Time
 	* @sign public this.delay(Function callback, Number delay)
@@ -10413,7 +10705,7 @@ Crafty.c("Delay", {
 	* ~~~
 	* console.log("start");
 	* this.delay(function() {
-	     console.log("100ms later");
+		 console.log("100ms later");
 	* }, 100);
 	* ~~~
 	*/
@@ -10422,7 +10714,6 @@ Crafty.c("Delay", {
 			start : new Date().getTime(),
 			func : func,
 			delay : delay,
-			triggered : false,
 			pauseBuffer: 0,
 			pause: 0
 		});
