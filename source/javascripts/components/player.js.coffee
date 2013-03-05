@@ -1,6 +1,6 @@
 PLAYER_WIDTH = 64
-PLAYER_SPEED = 4
-PLAYER_MOVEMENT_FPS = 10
+PLAYER_SPEED = 3
+PLAYER_MOVEMENT_DURATION = 8
 
 Crafty.sprite(PLAYER_WIDTH, "images/player_base.png",
   playerBase: [0, 0])
@@ -32,6 +32,6 @@ Crafty.c "Player",
   changedDirection: (info) ->
     @direction = info
     switch @direction.x
-      when 0 then @.stop()
-      when PLAYER_SPEED then @.animate("MoveRight", PLAYER_MOVEMENT_FPS, -1)
-      when -PLAYER_SPEED then @.animate("MoveLeft", PLAYER_MOVEMENT_FPS, -1)
+      when 0 then @.pause()
+      when PLAYER_SPEED then @.play("MoveRight", PLAYER_MOVEMENT_DURATION, -1)
+      when -PLAYER_SPEED then @.play("MoveLeft", PLAYER_MOVEMENT_DURATION, -1)
