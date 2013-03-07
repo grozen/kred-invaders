@@ -1,10 +1,13 @@
 - asset_files = Dir.glob("source/images/*.png").map { |path| File.join("images", File.split(path).last) }
 - asset_files.map! { |x| %Q("#{x}") }
 
-- async_script_files = []
-- %w[scenes components].each do |folder|
-  - script_names = Dir.glob("source/javascripts/#{folder}/*").map { |path| File.basename(path, '.js.coffee') }
-  - async_script_files += script_names.map { |name| %Q("javascripts/#{folder}/#{name}.js") }
+- important_scripts = ['components/player_common'] # Scripts that need to load before others
+- scripts = %w(player player_body player_cannon).map { |c| "components/#{c}" }
+- scripts += %w(playfield).map { |s| "scenes/#{s}" }
+- async_script_files = scripts.map { |name| %Q("javascripts/#{name}.js") }
+- async_important_script_files = important_scripts.map { |name| %Q("javascripts/#{name}.js") }
+
 :javascript
   var assets = [#{asset_files.join(', ')}]
   var async_scripts = [#{async_script_files.join(', ')}]
+  var async_important_scripts = [#{async_important_script_files.join(', ')}]
