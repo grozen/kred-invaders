@@ -2,8 +2,9 @@ class @PlayerConstants
   @WIDTH = @HEIGHT = 64
   @SPEED = 3
   @MOVEMENT_DURATION = 8
+  @SHOT_SPEED = 8
 
-# Behavior common to all components making out the player
+# Behavior common to most components making out the player
 Crafty.c 'PlayerCommon',
   init: ->
     @.requires("2D, DOM, Multiway")
