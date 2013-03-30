@@ -7,7 +7,11 @@ class @Game
       Crafty.viewport.height - PlayerConstants.HEIGHT)
 
     # Create aliens
+    @alienMoveInterval = 50
+    @alienMoveCounter = @alienMoveInterval
     Crafty.e("Alien").alien(1, 400, 50)
 
   update: ->
-    # update some game things here
+    @handleAlienMovement()
+
+  handleAlienMovement: ->
