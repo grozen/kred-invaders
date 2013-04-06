@@ -1,7 +1,7 @@
 class @AlienConstants
   @WIDTH = @HEIGHT = 48
   @HORIZONTAL_SPEED = 4
-  @VERTICAL_SPEED = 10
+  @VERTICAL_SPEED = 48
 
 Crafty.sprite(AlienConstants.WIDTH, "images/aliens.png",
   alienSprite1: [0, 0])
@@ -14,6 +14,7 @@ Crafty.c "Alien",
   alien: (type, x, y) ->
     @.addComponent("alienSprite#{type}")
     @.attr(x: x, y: y)
+    return @
 
   advance: ->
     @.move(@direction, AlienConstants.HORIZONTAL_SPEED)

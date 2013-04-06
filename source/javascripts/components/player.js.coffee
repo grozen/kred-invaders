@@ -23,6 +23,7 @@ Crafty.c 'Player',
     unless @shot.isActive()
       @cannon.fire()
       @shot.fireFrom(@x() + 29, @y() + 16)
+    return @
 
   keyDown: ->
     if @.isDown(Crafty.keys.SPACE)
