@@ -1,7 +1,7 @@
 class @AlienConstants
   @WIDTH = @HEIGHT = 48
-  @HORIZONTAL_SPEED = 4
-  @VERTICAL_SPEED = 48
+  @HORIZONTAL_SPEED = 10
+  @VERTICAL_SPEED = 25
 
 Crafty.sprite(AlienConstants.WIDTH, "images/aliens.png",
   alienSprite1: [0, 0])

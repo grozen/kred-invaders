@@ -9,10 +9,24 @@ class @Game
       Crafty.viewport.width / 2 - PlayerConstants.WIDTH / 2,
       Crafty.viewport.height - PlayerConstants.HEIGHT)
 
+    @createAliens()
+
+  createAliens: ->
     # Create aliens
     @alienMoveInterval = 50
     @alienMoveCounter = @alienMoveInterval
-    @aliens = [Crafty.e("Alien").alien(1, 400, 50)]
+
+    @aliens = []
+    leftStart = Crafty.viewport.width / 2 - AlienConstants.WIDTH * 5.5
+    bottomStart = 400
+    for column in [0...11]
+      for row in [0...5]
+        alien = Crafty.e("Alien").alien(
+          1,
+          leftStart + AlienConstants.WIDTH * column,
+          bottomStart - AlienConstants.HEIGHT * row)
+        @aliens.push(alien)
+
     @leftmostAlien = @aliens[0]
     @rightmostAlien = @aliens[@aliens.length - 1]
 
