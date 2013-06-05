@@ -44,7 +44,7 @@ class @Game
         alien.advance() for alien in @aliens
 
   aliensMovingOutsideScreen: ->
-    (@rightmostAlien.direction == 'w' and (@rightmostAlien.x - AlienConstants.HORIZONTAL_SPEED < 0)) or
-    (@leftmostAlien.direction == 'e' and
-      (@leftmostAlien.x + AlienConstants.WIDTH + AlienConstants.HORIZONTAL_SPEED > Crafty.viewport.width))
+    (@leftmostAlien.direction == 'w' and (@leftmostAlien.x - AlienConstants.HORIZONTAL_SPEED < 0)) or
+    (@rightmostAlien.direction == 'e' and
+      (@rightmostAlien.x + AlienConstants.WIDTH + AlienConstants.HORIZONTAL_SPEED > Crafty.viewport.width))
 
