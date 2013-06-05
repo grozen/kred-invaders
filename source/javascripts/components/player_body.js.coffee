@@ -12,6 +12,6 @@ Crafty.c "PlayerBody",
 
   changedDirection: (info) ->
     switch info.x
-      when 0 then @.pause()
-      when PlayerConstants.SPEED then @.play("MoveRight", PlayerConstants.MOVEMENT_DURATION, -1)
-      when -PlayerConstants.SPEED then @.play("MoveLeft", PlayerConstants.MOVEMENT_DURATION, -1)
+      when 0 then @.pauseAnimation()
+      when PlayerConstants.SPEED then @.playAnimation("MoveRight", PlayerConstants.MOVEMENT_DURATION, -1)
+      when -PlayerConstants.SPEED then @.playAnimation("MoveLeft", PlayerConstants.MOVEMENT_DURATION, -1)

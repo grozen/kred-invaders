@@ -11,7 +11,7 @@ Crafty.c "PlayerCannon",
     @.bind("AnimationEnd", @reload)
 
   fire: ->
-    @.play("Fire", 6, 0, 0)
+    @.playAnimation("Fire", 6, 0, 0)
 
   reload: (info) ->
-    @.play("Load", 16, 0, 0) if info.reelId == "Fire"
+    @.playAnimation("Load", 16, 0, 0) if info.reelId == "Fire"

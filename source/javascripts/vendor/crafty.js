@@ -1,8 +1,8 @@
 /*!
-* Crafty v0.5.3
+* Crafty v0.5.4
 * http://craftyjs.com
 *
-* Copyright 2010, Louis Stowasser
+* Copyright 2010-2013, Louis Stowasser
 * Dual licensed under the MIT or GPL licenses.
 */
 
@@ -14,6 +14,8 @@
     * Select a set of or single entities by components or an entity's ID.
     *
     * Crafty uses syntax similar to jQuery by having a selector engine to select entities by their components.
+    *
+    * If there is more than one match, the return value is an Array-like object listing the ID numbers of each matching entity. If there is exactly one match, the entity itself is returned. If you're not sure how many matches to expect, check the number of matches via Crafty(...).length. Alternatively, use Crafty(...).each(...), which works in all cases.
     *
     * @example
     * ~~~
@@ -54,7 +56,6 @@
 
     	components = {}; //map of components and their functions
     	entities = {}; //map of entities and their data
-        entityFactories = {}; //templates of entities
     	handlers = {}; //global event handlers
     	onloads = []; //temporary storage of onload handlers
     	tick;
@@ -105,11 +106,19 @@
                 i, l;
 
                 if (selector === '*') {
+                    i = 0;
                     for (e in entities) {
-                        this[+e] = entities[e];
-                        elem++;
+                        // entities is something like {2:entity2, 3:entity3, 11:entity11, ...}
+                        // The for...in loop sets e to "2", "3", "11", ... i.e. all
+                        // the entity ID numbers. e is a string, so +e converts to number type.
+                        this[i] = +e;
+                        i++;
                     }
-                    this.length = elem;
+                    this.length = i;
+                    // if there's only one entity, return the actual entity
+                    if (i === 1) {
+                        return entities[this[0]];
+                    }
                     return this;
                 }
 
@@ -228,13 +237,12 @@
         */
         addComponent: function (id) {
             var uninit = [], c = 0, ul, //array of components to init
-            i = 0, l, comps;
+            i = 0, l, comps, comp;
 
             //add multiple arguments
             if (arguments.length > 1) {
                 l = arguments.length;
                 for (; i < l; i++) {
-                    this.__c[arguments[i]] = true;
                     uninit.push(arguments[i]);
                 }
                 //split components if contains comma
@@ -242,21 +250,21 @@
                 comps = id.split(rlist);
                 l = comps.length;
                 for (; i < l; i++) {
-                    this.__c[comps[i]] = true;
                     uninit.push(comps[i]);
                 }
                 //single component passed
             } else {
-                this.__c[id] = true;
                 uninit.push(id);
             }
 
             //extend the components
             ul = uninit.length;
             for (; c < ul; c++) {
+                if (this.__c[uninit[c]] == true)
+                    continue
+                this.__c[uninit[c]] = true
                 comp = components[uninit[c]];
                 this.extend(comp);
-
                 //if constructor, call it
                 if (comp && "init" in comp) {
                     comp.init.call(this);
@@ -621,6 +629,7 @@
 
         /**@
         * #.each
+        * @comp Crafty Core
         * @sign public this .each(Function method)
         * @param method - Method to call on each iteration
         * Iterates over found entities, calling a function for every entity.
@@ -756,11 +765,13 @@
         * @category Core
         * @trigger EnterFrame - on each frame - { frame: Number }
         * @trigger Load - Just after the viewport is initialised. Before the EnterFrame loops is started
-        * @sign public this Crafty.init([Number width, Number height])
-        * @param width - Width of the stage
-        * @param height - Height of the stage
-        * 
-        * Create a div with id `cr-stage`, if there is not already an HTMLElement with id `cr-stage` (by `Crafty.viewport.init`).
+        * @sign public this Crafty.init([Number width, Number height, String stage_elem])
+        * @sign public this Crafty.init([Number width, Number height, HTMLElement stage_elem])
+        * @param Number width - Width of the stage
+        * @param Number height - Height of the stage
+        * @param String or HTMLElement stage_elem - the element to use for the stage    
+        *
+        * Sets the element to use as the stage, creating it if necessary.  By default a div with id 'cr-stage' is used, but if the 'stage_elem' argument is provided that will be used instead.  (see `Crafty.viewport.init`)     
         *
         * Starts the `EnterFrame` interval. This will call the `EnterFrame` event for every frame.
         *
@@ -771,8 +782,8 @@
         * Uses `requestAnimationFrame` to sync the drawing with the browser but will default to `setInterval` if the browser does not support it.
         * @see Crafty.stop,  Crafty.viewport
         */
-        init: function (w, h) {
-            Crafty.viewport.init(w, h);
+        init: function (w, h, stage_elem) {
+            Crafty.viewport.init(w, h, stage_elem);
 
             //call all arbitrary functions attached to onload
             this.trigger("Load");
@@ -814,7 +825,7 @@
         	    Crafty.audio.remove();
         		if (Crafty.stage && Crafty.stage.elem.parentNode) {
         			var newCrStage = document.createElement('div');
-        			newCrStage.id = "cr-stage";
+        			newCrStage.id = Crafty.stage.elem.id;
         			Crafty.stage.elem.parentNode.replaceChild(newCrStage, Crafty.stage.elem);
         		}
         		initState();
@@ -977,69 +988,6 @@
                 Crafty.DrawManager.draw();
             }
 
-        },
-
-        /**@
-        * #Crafty.addEntityFactory
-        * @category Core
-        * @param name - Name of the entity factory.
-        * @param callback - Function containing the entity creation procedure.
-        * 
-        * Registers an Entity Factory.  An Entity Factory allows for the repeatable creation of an Entity.
-        *
-        * @example
-        * ~~~
-        * Crafty.addEntityFactory('Projectile', function() {
-        *   var entity = Crafty.e('2D, Canvas, Color, Physics, Collision')
-        *   .color("red")
-        *   .attr({
-        *     w: 3,
-        *     h: 3,
-        *     x: this.x,
-        *     y: this.y
-        *   })
-        *   .addComponent('Gravity').gravity("Floor");
-        *   
-        *   return entity;
-        * });
-        * ~~~
-        * 
-        * @see Crafty.e
-        */
-        addEntityFactory: function(name, callback) {
-            this.entityFactories[name] = callback;
-        },
-
-        /**@
-        * #Crafty.newFactoryEntity
-        * @category Core
-        * @param name - Name of the entity factory.
-        * 
-        * Creates a new entity based on a specific Entity Factory.
-        *
-        * @example
-        * ~~~
-        * Crafty.addEntityFactory('Projectile', function() {
-        *   var entity = Crafty.e('2D, Canvas, Color, Physics, Collision')
-        *   .color("red")
-        *   .attr({
-        *     w: 3,
-        *     h: 3,
-        *     x: this.x,
-        *     y: this.y
-        *   })
-        *   .addComponent('Gravity').gravity("Floor");
-        *   
-        *   return entity;
-        * });
-        *
-        * Crafty.newFactoryEntity('Projectile'); // This returns a new Projectile Entity.
-        * ~~~
-        * 
-        * @see Crafty.e
-        */
-        newFactoryEntity: function(name) {
-            return this.entityTemplates[name]();
         },
 
         /**@
@@ -1215,31 +1163,52 @@
         * @param callbackID - ID of the callback
         * @returns True or false depending on if a callback was unbound
         * Unbind any event from any entity or global event.
+        * @example
+        * ~~~
+        *    var play_gameover_sound = function () {...};
+        *    Crafty.bind('GameOver', play_gameover_sound);
+        *    ...
+        *    Crafty.unbind('GameOver', play_gameover_sound);
+        * ~~~
+        * 
+        * The first line defines a callback function. The second line binds that
+        * function so that `Crafty.trigger('GameOver')` causes that function to
+        * run. The third line unbinds that function.
+        *  
+        * ~~~
+        *    Crafty.unbind('GameOver');
+        * ~~~
+        * 
+        * This unbinds ALL global callbacks for the event 'GameOver'. That
+        * includes all callbacks attached by `Crafty.bind('GameOver', ...)`, but
+        * none of the callbacks attached by `some_entity.bind('GameOver', ...)`.
         */
         unbind: function (event, callback) {
             // (To learn how the handlers object works, see inline comment at Crafty.bind)
-            var hdl = handlers[event], h, i, l;
+            var hdl = handlers[event], i, l, global_callbacks, found_match;
 
-            //loop over every object bound
-            for (h in hdl) {
-                if (!hdl.hasOwnProperty(h)) continue;
-
-                //if passed the ID
-                if (typeof callback === "number") {
-                    delete hdl[h][callback];
-                    return true;
-                }
-
-                //loop over every handler within object
-                for (i = 0, l = hdl[h].length; i < l; i++) {
-                    if (hdl[h][i] === callback) {
-                        delete hdl[h][i];
-                        return true;
-                    }
-                }
+            if (hdl === undefined || hdl['global'] === undefined
+                                           || hdl['global'].length === 0) {
+                return false;
             }
 
-            return false;
+            // If no callback was supplied, delete everything
+            if (arguments.length === 1) {
+                delete hdl['global'];
+                return true;
+            }
+
+            // loop over the globally-attached events
+            global_callbacks = hdl['global'];
+            found_match = false;
+            for (i=0, l=global_callbacks.length; i < l; i++) {
+                if (global_callbacks[i] === callback) {
+                    found_match = true;
+                    global_callbacks.splice(i, 1);
+                    i--;
+                }
+            }
+            return found_match;
         },
 
         /**@
@@ -1411,7 +1380,8 @@ function(Crafty, window, document) {
 		this.map = {};
 	},
 
-	SPACE = " ";
+	SPACE = " ",
+	keyHolder ={};
 
 	HashMap.prototype = {
 	/**@
@@ -1438,7 +1408,7 @@ function(Crafty, window, document) {
 			for (i = keys.x1; i <= keys.x2; i++) {
 				//insert into all y buckets
 				for (j = keys.y1; j <= keys.y2; j++) {
-					hash = i + SPACE + j;
+					hash = (i << 16)^j;
 					if (!this.map[hash]) this.map[hash] = [];
 					this.map[hash].push(obj);
 				}
@@ -1458,10 +1428,10 @@ function(Crafty, window, document) {
     * - If `filter` is `true`, filter the above results by checking that they actually overlap `rect`.
     * The easier usage is with `filter`=`true`. For performance reason, you may use `filter`=`false`, and filter the result yourself. See examples in drawing.js and collision.js
 	*/
+
 		search: function (rect, filter) {
-			var keys = HashMap.key(rect),
-			i, j,
-			hash,
+			var keys = HashMap.key(rect, keyHolder ),
+			i, j,k,
 			results = [];
 
 			if (filter === undefined) filter = true; //default filter to true
@@ -1470,11 +1440,11 @@ function(Crafty, window, document) {
 			for (i = keys.x1; i <= keys.x2; i++) {
 				//insert into all y buckets
 				for (j = keys.y1; j <= keys.y2; j++) {
-					hash = i + SPACE + j;
-
-					if (this.map[hash]) {
-						results = results.concat(this.map[hash]);
-					}
+					cell = this.map[(i << 16)^j];
+					if (cell) {
+                        for (k = 0; k<cell.length; k++)
+                            results.push(cell[k])
+					}	
 				}
 			}
 
@@ -1521,19 +1491,18 @@ function(Crafty, window, document) {
 
 			if (arguments.length == 1) {
 				obj = keys;
-				keys = HashMap.key(obj);
+				keys = HashMap.key(obj, keyHolder);
 			}
 
 			//search in all x buckets
 			for (i = keys.x1; i <= keys.x2; i++) {
 				//insert into all y buckets
 				for (j = keys.y1; j <= keys.y2; j++) {
-					hash = i + SPACE + j;
+					hash = (i << 16)^j;
 
 					if (this.map[hash]) {
 						var cell = this.map[hash],
-						m,
-						n = cell.length;
+						 m, n = cell.length;
 						//loop over objs in cell and delete
 						for (m = 0; m < n; m++)
 							if (cell[m] && cell[m][0] === obj[0])
@@ -1542,6 +1511,58 @@ function(Crafty, window, document) {
 				}
 			}
 		},
+
+	/**@
+	* #Crafty.map.refresh
+	* @comp Crafty.map
+	* @sign public void Crafty.map.remove(Entry entry)
+	* @param entry - An entry to update
+	* 
+	* Refresh an entry's keys, and its position in the broad phrase map.
+	*
+	* @example 
+	* ~~~
+	* Crafty.map.refresh(e);
+	* ~~~
+	*/
+		refresh: function(entry) {
+				var keys = entry.keys;
+				var obj = entry.obj;
+				var cell, i, j, m, n;
+
+				//First delete current object from appropriate cells
+				for (i = keys.x1; i <= keys.x2; i++) {
+					for (j = keys.y1; j <= keys.y2; j++) {
+						cell = this.map[(i << 16)^j];
+						if (cell) {
+							n = cell.length;
+							//loop over objs in cell and delete
+							for (m = 0; m < n; m++)
+								if (cell[m] && cell[m][0] === obj[0])
+									cell.splice(m, 1);
+						}
+					}
+				}
+
+				//update keys
+				HashMap.key(obj, keys);
+
+				//insert into all rows and columns
+				for (i = keys.x1; i <= keys.x2; i++) {
+					for (j = keys.y1; j <= keys.y2; j++) {
+						cell = this.map[(i << 16)^j];
+						if (!cell) cell=this.map[(i << 16)^j] = [];
+						cell.push(obj);
+					}
+				}
+
+			return entry;
+		},
+
+
+
+
+		
 
 	/**@
 	* #Crafty.map.boundaries
@@ -1578,9 +1599,9 @@ function(Crafty, window, document) {
 				if (!this.map[h].length) continue;
 
         //broad phase coordinate
-				var map_coord = h.split(SPACE),
-					i=map_coord[0],
-					j=map_coord[0];
+				var i= h>>16,
+					j=(h<<16)>>16;
+				if (j<0) { i = i^-1 }
 				if (i >= hash.max.x) {
 					hash.max.x = i;
 					for (k in this.map[h]) {
@@ -1646,15 +1667,19 @@ function(Crafty, window, document) {
     * 
     * @see Crafty.HashMap.constructor
 	*/
-	HashMap.key = function (obj) {
-		if (obj.hasOwnProperty('mbr')) {
-			obj = obj.mbr();
+	HashMap.key = function (obj, keys) {
+		if (obj._mbr) {
+			obj = obj._mbr
 		}
-		var x1 = Math.floor(obj._x / cellsize),
-		y1 = Math.floor(obj._y / cellsize),
-		x2 = Math.floor((obj._w + obj._x) / cellsize),
-		y2 = Math.floor((obj._h + obj._y) / cellsize);
-		return { x1: x1, y1: y1, x2: x2, y2: y2 };
+		if (!keys){
+			keys = {}
+		}
+
+		keys.x1 = Math.floor(obj._x / cellsize);
+		keys.y1 = Math.floor(obj._y / cellsize);
+		keys.x2 = Math.floor((obj._w + obj._x) / cellsize);
+		keys.y2 = Math.floor((obj._h + obj._y) / cellsize);
+		return keys;
 	};
 
 	HashMap.hash = function (keys) {
@@ -1665,15 +1690,13 @@ function(Crafty, window, document) {
 		this.keys = keys;
 		this.map = map;
 		this.obj = obj;
-	}
+	};
 
 	Entry.prototype = {
 		update: function (rect) {
 			//check if buckets change
-			if (HashMap.hash(HashMap.key(rect)) != HashMap.hash(this.keys)) {
-				this.map.remove(this.keys, this.obj);
-				var e = this.map.insert(this.obj);
-				this.keys = e.keys;
+			if (HashMap.hash(HashMap.key(rect, keyHolder)) != HashMap.hash(this.keys)) {
+					this.map.refresh(this)
 			}
 		}
 	};
@@ -1755,16 +1778,32 @@ Crafty.c("2D", {
 	* A higher `z` value will be closer to the front of the stage. A smaller `z` value will be closer to the back.
 	* A global Z index is produced based on its `z` value as well as the GID (which entity was created first).
 	* Therefore entities will naturally maintain order depending on when it was created if same z value.
+	*
+	* `z` is required to be an integer, e.g. `z=11.2` is not allowed.
 	* @see ._attr
 	*/
 	_z: 0,
 	/**@
 	* #.rotation
 	* @comp 2D
-	* Set the rotation of your entity. Rotation takes degrees in a clockwise direction.
-	* It is important to note there is no limit on the rotation value. Setting a rotation
-	* mod 360 will give the same rotation without reaching huge numbers.
-	* @see ._attr
+	* The rotation state of the entity, in clockwise degrees.
+	* `this.rotation = 0` sets it to its original orientation; `this.rotation = 10`
+	* sets it to 10 degrees clockwise from its original orientation;
+	* `this.rotation = -10` sets it to 10 degrees counterclockwise from its
+	* original orientation, etc.
+	* 
+	* When modified, will automatically be redrawn. Is actually a getter/setter
+	* so when using this value for calculations and not modifying it,
+	* use the `._rotation` property.
+	*
+	* `this.rotation = 0` does the same thing as `this.rotation = 360` or `720` or
+	* `-360` or `36000` etc. So you can keep increasing or decreasing the angle for continuous
+	* rotation. (Numerical errors do not occur until you get to millions of degrees.)
+	*
+	* The default is to rotate the entity around its (initial) top-left corner; use
+	* `.origin()` to change that.
+	*
+	* @see ._attr, .origin
 	*/
 	_rotation: 0,
 	/**@
@@ -1960,19 +1999,27 @@ Crafty.c("2D", {
 		this.bind("Move", function (e) {
 			var area = this._mbr || this;
 			this._entry.update(area);
-			this._cascade(e);
+			// Move children (if any) by the same amount
+			if (this._children.length > 0) { this._cascade(e); }
 		});
 
 		this.bind("Rotate", function (e) {
 			var old = this._mbr || this;
 			this._entry.update(old);
-			this._cascade(e);
+			// Rotate children (if any) by the same amount
+			if (this._children.length > 0) { this._cascade(e); }
 		});
 
 		//when object is removed, remove from HashMap and destroy attached children
 		this.bind("Remove", function () {
 			if (this._children) {
 				for (var i = 0; i < this._children.length; i++) {
+					// delete the child's _parent link, or else the child will splice itself out of
+					// this._children while destroying itself (which messes up this for-loop iteration).
+					delete this._children[i]._parent;
+					
+					// Destroy child if possible (It's not always possible, e.g. the polygon attached
+					// by areaMap has no .destroy(), it will just get garbage-collected.)
 					if (this._children[i].destroy) {
 						this._children[i].destroy();
 					}
@@ -2017,10 +2064,10 @@ Crafty.c("2D", {
 			y2 = o.y - (this._x + this._w - o.x) * st + (this._y + this._h - o.y) * ct,
 			x3 = o.x + (this._x - o.x) * ct + (this._y + this._h - o.y) * st,
 			y3 = o.y - (this._x - o.x) * st + (this._y + this._h - o.y) * ct,
-			minx = Math.round(Math.min(x0, x1, x2, x3)),
-			miny = Math.round(Math.min(y0, y1, y2, y3)),
-			maxx = Math.round(Math.max(x0, x1, x2, x3)),
-			maxy = Math.round(Math.max(y0, y1, y2, y3));
+			minx = Math.floor(Math.min(x0, x1, x2, x3)),
+			miny = Math.floor(Math.min(y0, y1, y2, y3)),
+			maxx = Math.ceil(Math.max(x0, x1, x2, x3)),
+			maxy = Math.ceil(Math.max(y0, y1, y2, y3));
 
 		this._mbr = { _x: minx, _y: miny, _w: maxx - minx, _h: maxy - miny };
 
@@ -2216,9 +2263,11 @@ Crafty.c("2D", {
 	* #._cascade
 	* @comp 2D
     * @sign public void ._cascade(e)
-	* @param e - Amount to move X
-	* Shift move or rotate the entity by an amount. Use negative values
-	* for an opposite direction.
+	* @param e - An object describing the motion
+	* Move or rotate the entity's children according to a certain motion.
+	* This method is part of a function bound to "Move": It is used
+	* internally for ensuring that when a parent moves, the child also
+	* moves in the same way.
 	*/
 	_cascade: function (e) {
 		if (!e) return; //no change in position
@@ -2248,12 +2297,18 @@ Crafty.c("2D", {
 	* #.attach
 	* @comp 2D
 	* @sign public this .attach(Entity obj[, .., Entity objN])
-	* @param obj - Entity(s) to attach
-	* Attaches an entities position and rotation to current entity. When the current entity moves,
-	* the attached entity will move by the same amount. Attached entities stored in _children array,
-	* the parent object is stored in _parent on the child entities.
+	* @param obj - Child entity(s) to attach
+	* Sets one or more entities to be children, with the current entity (`this`)
+	* as the parent. When the parent moves or rotates, its children move or
+	* rotate by the same amount. (But not vice-versa: If you move a child, it
+	* will not move the parent.) When the parent is destroyed, its children are
+	* destroyed.
+	* 
+	* For any entity, `this._children` is the array of its children entity
+	* objects (if any), and `this._parent` is its parent entity object (if any).
 	*
-	* As many objects as wanted can be attached and a hierarchy of objects is possible by attaching.
+	* As many objects as wanted can be attached, and a hierarchy of objects is
+	* possible by attaching.
 	*/
 	attach: function () {
 		var i = 0, arg = arguments, l = arguments.length, obj;
@@ -2393,7 +2448,7 @@ Crafty.c("2D", {
 		this._origin.y = e.o.y - this._y;
 
 		//modify through the setter method
-		this._attr('_rotation', e.theta);
+		this._attr('_rotation', this._rotation - e.deg);
 	},
 
 	/**@
@@ -2403,9 +2458,12 @@ Crafty.c("2D", {
 	* x, y, w, h, alpha, rotation and visible.
 	*/
 	_attr: function (name, value) {
+		// Return if there is no change
+		if (this[name] === value){
+			return;
+		}
 		//keep a reference of the old positions
-		var pos = this.pos(),
-			old = this.mbr() || pos;
+		var old = this.mbr();
 
 		//if rotation, use the rotate method
 		if (name === '_rotation') {
@@ -2413,10 +2471,10 @@ Crafty.c("2D", {
 			this.trigger("Rotate");
 			//set the global Z and trigger reorder just in case
 		} else if (name === '_z') {
-			this._globalZ = parseInt(value + Crafty.zeroFill(this[0], 5), 10); //magic number 10e5 is the max num of entities
+			this._globalZ = parseInt(value + Crafty.zeroFill(this[0], 5), 10); //magic number 10^5 is the max num of entities
 			this.trigger("reorder");
 			//if the rect bounds change, update the MBR and trigger move
-		} else if (name == '_x' || name === '_y' || name === '_w' || name === '_h') {
+		} else if (name === '_x' || name === '_y' || name === '_w' || name === '_h') {
 			var mbr = this._mbr;
 			if (mbr) {
 				mbr[name] -= this[name] - value;
@@ -2816,7 +2874,7 @@ Crafty.c("Collision", {
         this.requires("2D");
         var area = this._mbr || this;
 
-        poly = new Crafty.polygon([0, 0], [area._w, 0], [area._w, area._h], [0, area._h]);
+        var poly = new Crafty.polygon([0, 0], [area._w, 0], [area._w, area._h], [0, area._h]);
         this.map = poly;
         this.attach(this.map);
         this.map.shift(area._x, area._y);
@@ -3133,7 +3191,7 @@ Crafty.c("WiredHitBox", {
 			}
 			var ctx = c.getContext('2d');
 			var drawed = 0, total = Crafty("WiredHitBox").length;
-			this.requires("Collision").bind("EnterFrame", function () {
+			var drawBoxFunction = function () {
 				if (drawed == total) {
 					ctx.clearRect(0, 0, Crafty.viewport.width, Crafty.viewport.height);
 					drawed = 0;
@@ -3145,7 +3203,16 @@ Crafty.c("WiredHitBox", {
 				ctx.closePath();
 				ctx.stroke();
 				drawed++;
-
+			};
+			this.requires("Collision").bind("EnterFrame", drawBoxFunction);
+			this.bind('RemoveComponent', function (c) {
+				if (c == 'WiredHitBox') {
+					this.unbind('EnterFrame', drawBoxFunction);
+					if (drawed == total) {
+						ctx.clearRect(0, 0, Crafty.viewport.width, Crafty.viewport.height);
+						drawed = 0;
+					}
+				}
 			});
 		}
 
@@ -3181,7 +3248,7 @@ Crafty.c("SolidHitBox", {
 			}
 			var ctx = c.getContext('2d');
 			var drawed = 0, total = Crafty("SolidHitBox").length;
-			this.requires("Collision").bind("EnterFrame", function () {
+			var drawBoxFunction = function () {
 				if (drawed == total) {
 					ctx.clearRect(0, 0, Crafty.viewport.width, Crafty.viewport.height);
 					drawed = 0;
@@ -3193,6 +3260,16 @@ Crafty.c("SolidHitBox", {
 				ctx.closePath();
 				ctx.fill();
 				drawed++;
+			}
+			this.requires("Collision").bind("EnterFrame", drawBoxFunction);
+			this.bind("RemoveComponent", function (c) {
+				if (c == 'SolidHitBox') {
+					this.unbind('EnterFrame', drawBoxFunction);
+					if (drawed == total) {
+						ctx.clearRect(0, 0, Crafty.viewport.width, Crafty.viewport.height);
+						drawed = 0;
+					}
+				}
 			});
 		}
 
@@ -3225,7 +3302,7 @@ Crafty.c("DOM", {
 		this.bind("Change", function () {
 			if (!this._changed) {
 				this._changed = true;
-				Crafty.DrawManager.add(this);
+				Crafty.DrawManager.addDom(this);
 			}
 		});
 
@@ -3441,9 +3518,12 @@ Crafty.c("DOM", {
 	*
 	* To return a value, pass the property.
 	* 
+	* Note: For entities with "Text" component, some css properties are controlled by separate functions
+	* `.textFont()` and `.textColor()`, and ignore `.css()` settings. See Text component for details.
+	* 
 	* @example
 	* ~~~
-	* this.css({'text-align', 'center', font: 'Arial'});
+	* this.css({'text-align', 'center', 'text-decoration': 'line-through'});
 	* this.css("textAlign", "center");
 	* this.css("text-align"); //returns center
 	* ~~~
@@ -4436,8 +4516,9 @@ Crafty.extend({
     /**@
     * #Crafty.sprite
     * @category Graphics
-    * @sign public this Crafty.sprite([Number tile], String url, Object map[, Number paddingX[, Number paddingY]])
+    * @sign public this Crafty.sprite([Number tile, [Number tileh]], String url, Object map[, Number paddingX[, Number paddingY]])
     * @param tile - Tile size of the sprite map, defaults to 1
+    * @param tileh - Height of the tile; if provided, tile is interpreted as the width
     * @param url - URL of the sprite image
     * @param map - Object where the key is what becomes a new component and the value points to a position on the sprite map
     * @param paddingX - Horizontal space in between tiles. Defaults to 0.
@@ -4584,6 +4665,16 @@ Crafty.extend({
     *
     * Callbacks are passed with event data.
     * 
+    * @example 
+    * Will add a stage-wide MouseDown event listener to the player. Will log which button was pressed
+    * & the (x,y) coordinates in viewport/world/game space.
+    * ~~~
+    * var player = Crafty.e("2D");
+    *     player.onMouseDown = function(e) {
+    *         console.log(e.mouseButton, e.realX, e.realY);
+    *     };
+    * Crafty.addEvent(player, Crafty.stage.elem, "mousedown", player.onMouseDown);
+    * ~~~
     * @see Crafty.removeEvent
     */
     addEvent: function (ctx, obj, type, callback) {
@@ -5096,16 +5187,19 @@ Crafty.extend({
         /**@
          * #Crafty.viewport.init
          * @comp Crafty.viewport
-         * @sign public void Crafty.viewport.init([Number width, Number height])
-         * @param width - Width of the viewport
-         * @param height - Height of the viewport
+         * @sign public void Crafty.viewport.init([Number width, Number height, String stage_elem])
+         * @sign public void Crafty.viewport.init([Number width, Number height, HTMLElement stage_elem])
+         * @param Number width - Width of the viewport
+         * @param Number height - Height of the viewport
+         * @param String or HTMLElement stage_elem - the element to use as the stage (either its id or the actual element).
          *
          * Initialize the viewport. If the arguments 'width' or 'height' are missing, or Crafty.mobile is true, use Crafty.DOM.window.width and Crafty.DOM.window.height (full screen model).
-         * Create a div with id `cr-stage`, if there is not already an HTMLElement with id `cr-stage` (by `Crafty.viewport.init`).
+         *
+         * The argument 'stage_elem' is used to specify a stage element other than the default, and can be either a string or an HTMLElement.  If a string is provided, it will look for an element with that id and, if none exists, create a div.  If an HTMLElement is provided, that is used directly.  Omitting this argument is the same as passing an id of 'cr-stage'.
          *
          * @see Crafty.device, Crafty.DOM, Crafty.stage
          */
-        init: function (w, h) {
+        init: function (w, h, stage_elem) {
             Crafty.DOM.window.init();
 
             //fullscreen if mobile or not specified
@@ -5113,7 +5207,16 @@ Crafty.extend({
             this.height = (!h || Crafty.mobile) ? Crafty.DOM.window.height : h;
 
             //check if stage exists
-            var crstage = document.getElementById("cr-stage");
+            if(typeof stage_elem === 'undefined')
+                stage_elem = "cr-stage";
+
+            var crstage;
+            if(typeof stage_elem === 'string')
+                crstage = document.getElementById(stage_elem);
+            else if(typeof HTMLElement !== "undefined" ? stage_elem instanceof HTMLElement : stage_elem instanceof Element)
+                crstage = stage_elem;
+            else
+                throw new TypeError("stage_elem must be a string or an HTMLElement");
 
             /**@
              * #Crafty.stage
@@ -5188,7 +5291,7 @@ Crafty.extend({
             //add to the body and give it an ID if not exists
             if (!crstage) {
                 document.body.appendChild(Crafty.stage.elem);
-                Crafty.stage.elem.id = "cr-stage";
+                Crafty.stage.elem.id = stage_elem;
             }
 
             var elem = Crafty.stage.elem.style,
@@ -5861,19 +5964,25 @@ Crafty.c("Canvas", {
 
 		//increment the amount of canvas objs
 		Crafty.DrawManager.total2D++;
+		//Allocate an object to hold this components current region
+		this.currentRect = {};
+		this._changed = true;
+		Crafty.DrawManager.addCanvas(this);
 
 		this.bind("Change", function (e) {
-			//if within screen, add to list
-			if (this._changed === false) {
-				this._changed = Crafty.DrawManager.add(e || this, this);
-			} else {
-				if (e) this._changed = Crafty.DrawManager.add(e, this);
+			//flag if changed
+			if (this._changed === false){
+				this._changed = true;
+				Crafty.DrawManager.addCanvas(this);
 			}
+			
 		});
+
 
 		this.bind("Remove", function () {
 			Crafty.DrawManager.total2D--;
-			Crafty.DrawManager.add(this, this);
+			this._changed = true;
+			Crafty.DrawManager.addCanvas(this);
 		});
 	},
 
@@ -5889,6 +5998,18 @@ Crafty.c("Canvas", {
 	* 
 	* Method to draw the entity on the canvas element. Can pass rect values for redrawing a segment of the entity.
 	*/
+
+	// Cache the various objects and arrays used in draw:
+	drawVars:{
+		type: "canvas",
+		pos: {},
+		ctx: null,
+		coord: [0, 0, 0, 0],
+		co: {x:0, y:0, w:0, h:0}
+
+
+	},
+
 	draw: function (ctx, x, y, w, h) {
 		if (!this.ready) return;
 		if (arguments.length === 4) {
@@ -5899,20 +6020,20 @@ Crafty.c("Canvas", {
 			ctx = Crafty.canvas.context;
 		}
 
-		var pos = { //inlined pos() function, for speed
-			_x: (this._x + (x || 0)),
-			_y: (this._y + (y || 0)),
-			_w: (w || this._w),
-			_h: (h || this._h)
-		},
-			context = ctx || Crafty.canvas.context,
-			coord = this.__coord || [0, 0, 0, 0],
-			co = {
-			x: coord[0] + (x || 0),
-			y: coord[1] + (y || 0),
-			w: w || coord[2],
-			h: h || coord[3]
-		};
+		var pos = this.drawVars.pos;
+		pos._x = (this._x + (x || 0))
+		pos._y = (this._y + (y || 0))
+		pos._w = (w || this._w)
+		pos._h =(h || this._h)
+
+
+		context = ctx || Crafty.canvas.context;
+		coord =  this.__coord || [0, 0, 0, 0];
+		var co = this.drawVars.co;
+		co.x = coord[0] + (x || 0);
+		co.y = coord[1] + (y || 0)
+		co.w = w || coord[2]
+		co.h = h || coord[3]
 
 		if (this._mbr) {
 			context.save();
@@ -5941,7 +6062,8 @@ Crafty.c("Canvas", {
 			context.globalAlpha = this._alpha;
 		}
 
-		this.trigger("Draw", { type: "canvas", pos: pos, co: co, ctx: context });
+		this.drawVars.ctx = context;
+		this.trigger("Draw", this.drawVars);
 
 		if (this._mbr || (this._flipX || this._flipY)) {
 			context.restore();
@@ -5996,7 +6118,7 @@ Crafty.extend({
 				return;
 			}
 
-			//create 3 empty canvas elements
+			//create an empty canvas element
 			var c;
 			c = document.createElement("canvas");
 			c.width = Crafty.viewport.width;
@@ -6008,6 +6130,11 @@ Crafty.extend({
 			Crafty.stage.elem.appendChild(c);
 			Crafty.canvas.context = c.getContext('2d');
 			Crafty.canvas._canvas = c;
+
+			//Set any existing transformations
+			var zoom = Crafty.viewport._zoom
+			if (zoom != 1)
+				Crafty.canvas.context.scale(zoom, zoom);
 		}
 	}
 });
@@ -6051,7 +6178,28 @@ Crafty.extend({
 
 		Crafty.selected = selected;
 	},
-
+	/**@
+	* #Crafty.mouseDispatch
+	* @category Input
+	*
+	* Internal method which dispatches mouse events received by Crafty (crafty.stage.elem).
+	* The mouse events get dispatched to the closest entity to the source of the event (if available).
+	* 
+	* This method also sets a global property Crafty.lastEvent, which holds the most recent event that 
+	* occured (useful for determining mouse position in every frame).
+	* ~~~
+	* var newestX = Crafty.lastEvent.realX,
+	* 	  newestY = Crafty.lastEvent.realY;
+	* ~~~
+	*
+	* Notable properties of a MouseEvent e:
+	* ~~~
+	* e.clientX, e.clientY	//(x,y) coordinates of mouse event in web browser screen space
+	* e.realX, e.realY		//(x,y) coordinates of mouse event in world/viewport space
+	* e.mouseButton			// Normalized mouse button according to Crafty.mouseButtons
+	* ~~~
+	* @see Crafty.touchDispatch
+	*/
 	mouseDispatch: function (e) {
 		
 		if (!Crafty.mouseObjs) return;
@@ -6262,7 +6410,19 @@ Crafty.extend({
 	* Unicode of the key pressed
 	*/
 	keyboardDispatch: function (e) {
-		e.key = e.keyCode || e.which;
+		// Use a Crafty-standard event object to avoid cross-browser issues
+		var original = e,
+			evnt = {},
+			props = "char charCode keyCode type shiftKey ctrlKey metaKey timestamp".split(" ");
+		for (var i = props.length; i;) {
+			var prop = props[--i];
+			evnt[prop] = original[prop];
+		}
+		evnt.which = original.charCode != null ? original.charCode : original.keyCode;
+		evnt.key = original.keyCode || original.which;
+		evnt.originalEvent = original;
+		e = evnt;
+
 		if (e.type === "keydown") {
 			if (Crafty.keydown[e.key] !== true) {
 				Crafty.keydown[e.key] = true;
@@ -6282,7 +6442,7 @@ Crafty.extend({
             else e.cancelBubble = true;
 
 			//Don't prevent default actions if target node is input or textarea.
-			if(e.target.nodeName !== 'INPUT' && e.target.nodeName !== 'TEXTAREA'){
+			if(e.target && e.target.nodeName !== 'INPUT' && e.target.nodeName !== 'TEXTAREA'){
 				if(e.preventDefault){
 					e.preventDefault();
 				} else {
@@ -6364,6 +6524,7 @@ Crafty.bind("CraftyStop", function () {
 *        console.log("Clicked right button");
 * })
 * ~~~
+* @see Crafty.mouseDispatch
 */
 Crafty.c("Mouse", {
 	init: function () {
@@ -6673,6 +6834,15 @@ Crafty.c("Multiway", {
 		}
 	},
 
+	_initializeControl: function() {
+		return this.unbind("KeyDown", this._keydown)
+		.unbind("KeyUp", this._keyup)
+		.unbind("EnterFrame", this._enterframe)
+		.bind("KeyDown", this._keydown)
+		.bind("KeyUp", this._keyup)
+		.bind("EnterFrame", this._enterframe);
+	},
+
 	/**@
 	* #.multiway
 	* @comp Multiway
@@ -6712,8 +6882,7 @@ Crafty.c("Multiway", {
 		this._keyDirection = keys;
 		this.speed(this._speed);
 
-		this.disableControl();
-		this.enableControl();
+		this._initializeControl();
 
 		//Apply movement if key is down when created
 		for (var k in keys) {
@@ -6734,15 +6903,13 @@ Crafty.c("Multiway", {
 	*
 	* @example
 	* ~~~
-    * this.enableControl();
+	* this.enableControl();
 	* ~~~
 	*/
-  enableControl: function() {
-		this.bind("KeyDown", this._keydown)
-		.bind("KeyUp", this._keyup)
-		.bind("EnterFrame", this._enterframe);
+	enableControl: function() {
+		this.disableControls = false;
 		return this;
-  },
+	},
 
 	/**@
 	* #.disableControl
@@ -6757,12 +6924,10 @@ Crafty.c("Multiway", {
 	* ~~~
 	*/
 
-  disableControl: function() {
-		this.unbind("KeyDown", this._keydown)
-		.unbind("KeyUp", this._keyup)
-		.unbind("EnterFrame", this._enterframe);
+	disableControl: function() {
+		this.disableControls = true;
 		return this;
-  },
+	},
 
 	speed: function (speed) {
 		for (var k in this._keyDirection) {
@@ -6969,6 +7134,9 @@ Crafty.c("Animation", {
 * Used to animate sprites by treating a sprite map as a set of animation frames.
 * Must be applied to an entity that has a sprite-map component.
 *
+* Note: All data recieved from events is only valid until the next event of that
+* type takes place. If you wish to preserve the data, make a copy of it.
+*
 * @see crafty.sprite
 */
 Crafty.c("SpriteAnimation", {
@@ -6999,6 +7167,22 @@ Crafty.c("SpriteAnimation", {
 	* Whether or not an animation is currently playing.
 	*/
 	_isPlaying: false,
+
+	/**@
+	 * #._frameChangeInfo
+	 * @comp SpriteAnimation
+	 *
+	 * Contains information about the latest frame change event.
+	 */
+	_frameChangeInfo: { reelId: undefined, frameNumber: undefined },
+
+	/**@
+	 * #._animationEndInfo
+	 * @comp SpriteAnimation
+	 *
+	 * Contains information about the latest animation end event.
+	 */
+	_animationEndInfo: { reelId: undefined },
 
 	init: function () {
 		this._reels = {};
@@ -7048,10 +7232,9 @@ Crafty.c("SpriteAnimation", {
 
 		reel = {
 			frames: [],
-			cyclesPerFrame: undefined, // This gets defined when calling play(...)
+			cyclesPerFrame: undefined, // This gets defined when calling play(...), and indicates the amount of actual frames each individual reel frame is displayed
 			currentFrameNumber: 0,
 			cycleNumber: 0,
-			repeatInfinitly: false,
 			repeatsRemaining: 0
 		}
 
@@ -7088,8 +7271,8 @@ Crafty.c("SpriteAnimation", {
 	},
 
 	/**@
-	* #.play
-	* @sign public this .play(String reelId, Number duration[, Number repeatCount, Number fromFrame])
+	* #.playAnimation
+	* @sign public this .playAnimation(String reelId, Number duration[, Number repeatCount, Number fromFrame])
 	* @param reelId - ID of the animation reel to play
 	* @param duration - Play the animation within a duration (in frames)
 	* @param repeatCount - Number of times to repeat the animation (it will play repeatCount + 1 times). Use -1 to repeat indefinitely.
@@ -7106,7 +7289,7 @@ Crafty.c("SpriteAnimation", {
 	* If you simply wish to resume a previously paused animation without having to specify the duration again,
 	* supply `null` as the duration.
 	*
-	* Once an animation ends, it will remain at its last frame. Call `.reset(...)` to reset a reel to its first
+	* Once an animation ends, it will remain at its last frame. Call `.resetAnimation(...)` to reset a reel to its first
 	* frame, or play the reel from a specific frame. Attempting to play the reel again otherwise will result in
 	* the animation ending immediately.
 	*
@@ -7123,10 +7306,10 @@ Crafty.c("SpriteAnimation", {
 	* \/\/ Play the animation across 20 frame (so each sprite in the 4 sprite animation should be seen for 5 frames) and repeat indefinitely
 	* Crafty.e("2D, DOM, SpriteAnimation, PlayerSprite")
 	*     .animate('PlayerRunning', 0, 0, 3) // setup animation
-	*     .play('PlayerRunning', 20, -1); // start animation
+	*     .playAnimation('PlayerRunning', 20, -1); // start animation
 	* ~~~
 	*/
-	play: function(reelId, duration, repeatCount, fromFrame) {
+	playAnimation: function(reelId, duration, repeatCount, fromFrame) {
 		var pos;
 
 		currentReel = this._reels[reelId];
@@ -7135,28 +7318,28 @@ Crafty.c("SpriteAnimation", {
 			throw "The supplied reelId, " + reelId + ", is not recognized.";
 		}
 
-		this.pause(); // This will pause the current animation, if one is playing
+		this.pauseAnimation(); // This will pause the current animation, if one is playing
 
 		this._currentReelId = reelId;
 
-		if (duration !== null) {
+		if (duration !== undefined && duration !== null) {
 			currentReel.cyclesPerFrame = Math.ceil(duration / currentReel.frames.length);
 		}
 
-		if (repeatCount == null) {
+		if (repeatCount === undefined || repeatCount === null) {
 			currentReel.repeatsRemaining = 0;
 		}
 		else {
 			// User provided repetition count
 			if (repeatCount === -1) {
-				currentReel.repeatInfinitly = true;
+				currentReel.repeatsRemaining = Infinity;
 			}
 			else {
 				currentReel.repeatsRemaining = repeatCount;
 			}
 		}
 
-		if (fromFrame != null) {
+		if (fromFrame !== undefined && fromFrame !== null) {
 			if (fromFrame >= currentReel.frames.length) {
 				throw "The request frame exceeds the reel length.";
 			}
@@ -7166,7 +7349,9 @@ Crafty.c("SpriteAnimation", {
 			}
 		}
 
-		this.trigger("FrameChange", { reelId: this._currentReelId, frameNumber: currentReel.currentFrameNumber });
+		this._frameChangeInfo.reelId = this._currentReelId;
+		this._frameChangeInfo.frameNumber = currentReel.currentFrameNumber;
+		this.trigger("FrameChange", this._frameChangeInfo);
 		this.trigger("Change"); // Needed to trigger a redraw
 
 		pos = currentReel.frames[currentReel.currentFrameNumber];
@@ -7179,25 +7364,25 @@ Crafty.c("SpriteAnimation", {
 	},
 
 	/**@
-	* #.resume
+	* #.resumeAnimation
 	* @comp SpriteAnimation
-	* @sign public this .resume([String reelId])
+	* @sign public this .resumeAnimation([String reelId])
 	* @param reelId - ID of the animation to continue playing
 	*
-	* This is simply a convenience method and is identical to calling `.play(reelId, null)`.
+	* This is simply a convenience method and is identical to calling `.playAnimation(reelId, null)`.
 	* You can call this method with no arguments to resume the last animation that played.
 	*/
-	resume: function(reelId) {
-		if (reelId == null) {
+	resumeAnimation: function(reelId) {
+		if (reelId === undefined || reelId === null) {
 			if (this._currentReelId !== null) {
-				return this.play(this._currentReelId, null);
+				return this.playAnimation(this._currentReelId, null);
 			}
 			else {
 				throw "There is no animation to resume.";
 			}
 		}
 
-		return this.play(reelId, null);
+		return this.playAnimation(reelId, null);
 	},
 
 	/**@
@@ -7222,19 +7407,22 @@ Crafty.c("SpriteAnimation", {
 
 			// If we went through the reel, loop the animation or end it
 			if (currentReel.currentFrameNumber >= currentReel.frames.length) {
-				if (currentReel.repeatInfinitly === true || currentReel.repeatsRemaining > 0) {
+				if (currentReel.repeatsRemaining > 0) {
 					currentReel.repeatsRemaining--;
 					currentReel.currentFrameNumber = 0;
 				}
 				else {
 					currentReel.currentFrameNumber = currentReel.frames.length - 1;
-					this.pause();
-					this.trigger("AnimationEnd", { reelId: this._currentReelId });
+					this.pauseAnimation();
+					this._animationEndInfo.reelId = this._currentReelId
+					this.trigger("AnimationEnd", this._animationEndInfo);
 					return;
 				}
 			}
 
-			this.trigger("FrameChange", { reelId: this._currentReelId, frameNumber: currentReel.currentFrameNumber });
+			this._frameChangeInfo.reelId = this._currentReelId;
+			this._frameChangeInfo.frameNumber = currentReel.currentFrameNumber;
+			this.trigger("FrameChange", this._frameChangeInfo);
 			this.trigger("Change"); // Needed to trigger a redraw
 		}
 
@@ -7246,13 +7434,13 @@ Crafty.c("SpriteAnimation", {
 	},
 
 	/**@
-	* #.pause
+	* #.pauseAnimation
 	* @comp SpriteAnimation
-	* @sign public this .pause(void)
+	* @sign public this .pauseAnimation(void)
 	*
 	* Pauses the currently playing animation, or does nothing if no animation is playing.
 	*/
-	pause: function () {
+	pauseAnimation: function () {
 		this.unbind("EnterFrame", this.updateSprite);
 		this._isPlaying = false;
 
@@ -7260,9 +7448,9 @@ Crafty.c("SpriteAnimation", {
 	},
 
 	/**@
-	* #.reset
+	* #.resetAnimation
 	* @comp SpriteAnimation
-	* @sign public this .reset([String reelId, Number frameToDisplay])
+	* @sign public this .resetAnimation([String reelId, Number frameToDisplay])
 	* @param reelId - ID of the animation to reset
 	* @param frameToDisplay - The frame to show after resetting the animation. 0 based.
 	*
@@ -7281,10 +7469,10 @@ Crafty.c("SpriteAnimation", {
 	* Keep in mind that resetting an animation will set the animation's state to the one it had
 	* just after defining it using `animate(...)`.
 	*/
-	reset: function (reelId, frameToDisplay) {
+	resetAnimation: function (reelId, frameToDisplay) {
 		var reelToReset = this._reels[reelId];
 
-		if (reelId == null) {
+		if (reelId === undefined || reelId === null) {
 			if (this._currentReelId !== null) {
 				reelToReset = this._reels[this._currentReelId];
 			}
@@ -7293,7 +7481,7 @@ Crafty.c("SpriteAnimation", {
 			}
 		}
 
-		if (frameToDisplay == null) {
+		if (frameToDisplay === undefined || frameToDisplay === null) {
 			frameToDisplay = 0;
 		}
 
@@ -7304,12 +7492,11 @@ Crafty.c("SpriteAnimation", {
 			throw "The request frame exceeds the reel length.";
 		}
 
-		this.pause();
+		this.pauseAnimation();
 
 		reelToReset.cyclesPerFrame = undefined;
 		reelToReset.currentFrameNumber = frameToDisplay;
 		reelToReset.cycleNumber = 0;
-		reelToReset.repeatInfinitly = false;
 		reelToReset.repeatsRemaining = 0;
 
 		this.trigger("Change"); // Needed to trigger a redraw
@@ -7510,7 +7697,7 @@ Crafty.c("Tint", {
 		var draw = function d(e) {
 			var context = e.ctx || Crafty.canvas.context;
 
-			context.fillStyle = this._color || "rgb(0,0,0)";
+			context.fillStyle = this._color || "rgba(0,0,0, 0)";
 			context.fillRect(e.pos._x, e.pos._y, e.pos._w, e.pos._h);
 		};
 
@@ -7679,7 +7866,8 @@ Crafty.extend({
 	*     Crafty.e("2D, DOM, Text")
 	*           .attr({ w: 100, h: 20, x: 150, y: 120 })
 	*           .text("Loading")
-	*           .css({ "text-align": "center", "color": "#FFF" });
+	*           .css({ "text-align": "center"})
+    *           .textColor("#FFFFFF");
 	* });
 	*
 	* Crafty.scene("UFO_dance",
@@ -7777,10 +7965,86 @@ Crafty.extend({
 * the best method of drawing in both DOM and canvas
 */
 Crafty.DrawManager = (function () {
+	/** Helper function to sort by globalZ */
+	function zsort(a, b) { return a._globalZ - b._globalZ; };
 	/** array of dirty rects on screen */
-	var dirty_rects = [],
+	var dirty_rects = [], changed_objs = [], 
 	/** array of DOMs needed updating */
-		dom = [];
+		dom = [], 
+	
+	/** recManager: an object for managing dirty rectangles. */
+	rectManager = {
+		/** Finds smallest rectangles that overlaps a and b, merges them into target */
+		merge: function(a, b, target){
+			if (target == null)
+				target={}
+			// Doing it in this order means we can use either a or b as the target, with no conflict
+			// Round resulting values to integers; down for xy, up for wh
+			// Would be slightly off if negative w, h were allowed
+			target._h = Math.max(a._y + a._h, b._y + b._h);
+			target._w = Math.max(a._x + a._w, b._x + b._w);
+			target._x = ~~Math.min(a._x, b._x);
+			target._y = ~~Math.min(a._y, b._y);
+			target._w -= target._x;
+			target._h -= target._y
+			target._w = (target._w == ~~target._w) ? target._w : ~~target._w + 1 | 0;
+			target._h = (target._h == ~~target._h) ? target._h : ~~target._h + 1 | 0;
+			return target
+		},
+
+		/** cleans up current dirty state, stores stale state for future passes */
+		clean: function(){
+			var rect, obj, i;
+            for (i=0, l=changed_objs.length; i<l; i++){
+            	obj = changed_objs[i];
+            	rect = obj._mbr || obj;
+            	if (obj.staleRect == null)
+            			obj.staleRect = {}
+        		obj.staleRect._x = rect._x;
+				obj.staleRect._y = rect._y;
+				obj.staleRect._w = rect._w;
+				obj.staleRect._h = rect._h;
+
+				obj._changed = false
+            }
+            changed_objs.length = 0;
+            dirty_rects.length = 0
+
+		},
+
+		/** Takes the current and previous position of an object, and pushes the dirty regions onto the stack
+		* 	If the entity has only moved/changed a little bit, the regions are squashed together */
+		createDirty: function(obj){
+			var rect = obj._mbr || obj;
+			if (obj.staleRect){
+				//If overlap, merge stale and current position together, then return
+				//Otherwise just push stale rectangle
+				if (  rectManager.overlap( obj.staleRect, rect)){
+					rectManager.merge(obj.staleRect, rect, obj.staleRect)
+					dirty_rects.push(obj.staleRect)
+					return
+				}
+				else{
+					dirty_rects.push(obj.staleRect)
+				}
+			}
+
+			// We use the intermediate "currentRect" so it can be modified without messing with obj
+			obj.currentRect._x = rect._x;
+			obj.currentRect._y = rect._y;
+			obj.currentRect._w = rect._w;
+			obj.currentRect._h = rect._h;
+			dirty_rects.push(obj.currentRect)
+			
+		},
+
+		/** Checks whether two rectangles overlap */
+		overlap: function(a, b){
+			return (a._x < b._x + b._w && a._y < b._y + b._h 
+					&& a._x + a._w > b._x && a._y + a._h > b._y)
+		}
+
+	};
 
 	return {
 		/**@
@@ -7805,101 +8069,57 @@ Crafty.DrawManager = (function () {
 		},
 
 		/**@
-		* #Crafty.DrawManager.merge
+		* #Crafty.DrawManager.mergeSet
 		* @comp Crafty.DrawManager
-		* @sign public Object Crafty.DrawManager.merge(Object set)
+		* @sign public Object Crafty.DrawManager.mergeSet(Object set)
 		* @param set - an array of rectangular regions
 		* 
-		* Merged into non overlapping rectangular region
+		* Merge any consecutive, overlapping rects into each other.
 		* Its an optimization for the redraw regions.
+		*
+		* The order of set isn't strictly meaningful, 
+		* but overlapping objects will often cause each other to change, 
+		* and so might be consecutive.
 		*/
-		merge: function (set) {
-			do {
-				var newset = [], didMerge = false, i = 0,
-					l = set.length, current, next, merger;
-
-				while (i < l) {
-					current = set[i];
-					next = set[i + 1];
-
-					if (i < l - 1 && current._x < next._x + next._w && current._x + current._w > next._x &&
-									current._y < next._y + next._h && current._h + current._y > next._y) {
-
-						merger = {
-							_x: ~~Math.min(current._x, next._x),
-							_y: ~~Math.min(current._y, next._y),
-							_w: Math.max(current._x, next._x) + Math.max(current._w, next._w),
-							_h: Math.max(current._y, next._y) + Math.max(current._h, next._h)
-						};
-						merger._w = merger._w - merger._x;
-						merger._h = merger._h - merger._y;
-						merger._w = (merger._w == ~~merger._w) ? merger._w : merger._w + 1 | 0;
-						merger._h = (merger._h == ~~merger._h) ? merger._h : merger._h + 1 | 0;
-
-						newset.push(merger);
-
-						i++;
-						didMerge = true;
-					} else newset.push(current);
+		mergeSet: function (set) {
+			var i = 0;
+			while (i < set.length-1) {
+				// If current and next overlap, merge them together into the first, removing the second
+				// Then skip the index backwards to compare the previous pair.
+				// Otherwise skip forward
+				if (rectManager.overlap(set[i], set[i+1])){
+					rectManager.merge(set[i], set[i+1], set[i]);
+					set.splice(i+1, 1);
+					if (i>0) i--
+				} else
 					i++;
-				}
-
-				set = newset.length ? Crafty.clone(newset) : set;
-
-				if (didMerge) i = 0;
-			} while (didMerge);
-
+			}
+		
 			return set;
 		},
 
 		/**@
-		* #Crafty.DrawManager.add
+		* #Crafty.DrawManager.addCanvas
 		* @comp Crafty.DrawManager
-		* @sign public Crafty.DrawManager.add(old, current)
-		* @param old - Undocumented
-		* @param current - Undocumented
+		* @sign public Crafty.DrawManager.addCanvas(ent)
+		* @param ent - The entity to add
 		* 
-		* Calculate the bounding rect of dirty data and add to the register of dirty rectangles
+		* Add an entity to the list of Canvas objects to draw
 		*/
-		add: function add(old, current) {
-			if (!current) {
-				dom.push(old);
-				return;
-			}
+		addCanvas: function addCanvas(ent){
+			changed_objs.push(ent)
+		},
 
-			var rect,
-				before = old._mbr || old,
-				after = current._mbr || current;
-
-			if (old === current) {
-				rect = old.mbr() || old.pos();
-			} else {
-				rect = {
-					_x: ~~Math.min(before._x, after._x),
-					_y: ~~Math.min(before._y, after._y),
-					_w: Math.max(before._w, after._w) + Math.max(before._x, after._x),
-					_h: Math.max(before._h, after._h) + Math.max(before._y, after._y)
-				};
-
-				rect._w = (rect._w - rect._x);
-				rect._h = (rect._h - rect._y);
-			}
-
-			if (rect._w === 0 || rect._h === 0 || !this.onScreen(rect)) {
-				return false;
-			}
-
-			//floor/ceil
-			rect._x = ~~rect._x;
-			rect._y = ~~rect._y;
-			rect._w = (rect._w === ~~rect._w) ? rect._w : rect._w + 1 | 0;
-			rect._h = (rect._h === ~~rect._h) ? rect._h : rect._h + 1 | 0;
-
-			//add to dirty_rects, check for merging
-			dirty_rects.push(rect);
-
-			//if it got merged
-			return true;
+		/**@
+		* #Crafty.DrawManager.addDom
+		* @comp Crafty.DrawManager
+		* @sign public Crafty.DrawManager.addDom(ent)
+		* @param ent - The entity to add
+		* 
+		* Add an entity to the list of DOM object to draw
+		*/
+		addDom: function addDom(ent) {
+				dom.push(ent);
 		},
 
 		/**@
@@ -7908,13 +8128,13 @@ Crafty.DrawManager = (function () {
 		* @sign public Crafty.DrawManager.debug()
 		*/
 		debug: function () {
-			console.log(dirty_rects, dom);
+			console.log(changed_objs, dom);
 		},
 
 		/**@
-		* #Crafty.DrawManager.draw
+		* #Crafty.DrawManager.drawAll
 		* @comp Crafty.DrawManager
-		* @sign public Crafty.DrawManager.draw([Object rect])
+		* @sign public Crafty.DrawManager.drawAll([Object rect])
         * @param rect - a rectangular region {_x: x_val, _y: y_val, _w: w_val, _h: h_val}
         * ~~~
 		* - If rect is omitted, redraw within the viewport
@@ -7932,7 +8152,7 @@ Crafty.DrawManager = (function () {
 			ctx.clearRect(rect._x, rect._y, rect._w, rect._h);
 
 			//sort the objects by the global Z
-			q.sort(function (a, b) { return a._globalZ - b._globalZ; });
+			q.sort(zsort);
 			for (; i < l; i++) {
 				current = q[i];
 				if (current._visible && current.__c.Canvas) {
@@ -7972,6 +8192,8 @@ Crafty.DrawManager = (function () {
 			return master;
 		},
 
+
+
 		/**@
 		* #Crafty.DrawManager.draw
 		* @comp Crafty.DrawManager
@@ -7985,11 +8207,11 @@ Crafty.DrawManager = (function () {
         * @see Canvas.draw, DOM.draw
 		*/
 		draw: function draw() {
-			//if nothing in dirty_rects, stop
-			if (!dirty_rects.length && !dom.length) return;
+			//if no objects have been changed, stop
+			if (!changed_objs.length && !dom.length) return;
 
-			var i = 0, l = dirty_rects.length, k = dom.length, rect, q,
-				j, len, dupes, obj, ent, objs = [], ctx = Crafty.canvas.context;
+			var i = 0, l = changed_objs.length, k = dom.length, rect, q,
+				j, len, obj, ent, ctx = Crafty.canvas.context;
 
 			//loop over all DOM elements needing updating
 			for (; i < k; ++i) {
@@ -7997,82 +8219,87 @@ Crafty.DrawManager = (function () {
 			}
 			//reset DOM array
             dom.length = 0;
-			//again, stop if nothing in dirty_rects
+
+			//again, stop if no canvas components have changed
 			if (!l) { return; }
 
-			//if the amount of rects is over 60% of the total objects
+			//if the amount of changed objects is over 60% of the total objects
 			//do the naive method redrawing
-			if (l / this.total2D > 0.6) {
+			// TODO: I'm not sure this condition really makes that much sense!
+			if (l / this.total2D > 0.6 ) {
 				this.drawAll();
-				dirty_rects.length = 0;
+				rectManager.clean()
 				return;
 			}
 
-			dirty_rects = this.merge(dirty_rects);
+			// Calculate dirty_rects from all changed objects, then merge some overlapping regions together
+			for  (i=0; i<l; i++){
+				rectManager.createDirty(changed_objs[i])
+			}
+			dirty_rects = this.mergeSet(dirty_rects);
+
+			
+			l = dirty_rects.length;
+			var dupes = [], objs = []
+			// For each dirty rectangle, find entities near it, and draw the overlapping ones
 			for (i = 0; i < l; ++i) { //loop over every dirty rect
 				rect = dirty_rects[i];
+				dupes.length=0;
+				objs.length=0;
 				if (!rect) continue;
-				q = Crafty.map.search(rect, false); //search for ents under dirty rect
 
-				dupes = {};
-
-				//loop over found objects removing dupes and adding to obj array
-				for (j = 0, len = q.length; j < len; ++j) {
-					obj = q[j];
-
-					if (dupes[obj[0]] || !obj._visible || !obj.__c.Canvas)
-						continue;
-					dupes[obj[0]] = true;
-
-					objs.push({ obj: obj, rect: rect });
-				}
+				//search for ents under dirty rect
+				q = Crafty.map.search(rect, false); 
 
 				//clear the rect from the main canvas
 				ctx.clearRect(rect._x, rect._y, rect._w, rect._h);
 
-			}
-
-			//sort the objects by the global Z
-			objs.sort(function (a, b) { return a.obj._globalZ - b.obj._globalZ; });
-			if (!objs.length){ return; }
-
-			//loop over the objects
-			for (i = 0, l = objs.length; i < l; ++i) {
-				obj = objs[i];
-				rect = obj.rect;
-				ent = obj.obj;
-
-				var area = ent._mbr || ent,
-					x = (rect._x - area._x <= 0) ? 0 : ~~(rect._x - area._x),
-					y = (rect._y - area._y < 0) ? 0 : ~~(rect._y - area._y),
-					w = ~~Math.min(area._w - x, rect._w - (area._x - rect._x), rect._w, area._w),
-					h = ~~Math.min(area._h - y, rect._h - (area._y - rect._y), rect._h, area._h);
-
-				//no point drawing with no width or height
-				if (h === 0 || w === 0) continue;
-
+				//Then clip drawing region to dirty rectangle
 				ctx.save();
 				ctx.beginPath();
-				ctx.moveTo(rect._x, rect._y);
-				ctx.lineTo(rect._x + rect._w, rect._y);
-				ctx.lineTo(rect._x + rect._w, rect._h + rect._y);
-				ctx.lineTo(rect._x, rect._h + rect._y);
-				ctx.lineTo(rect._x, rect._y);
-
+				ctx.rect(rect._x, rect._y, rect._w, rect._h);
 				ctx.clip();
 
-				ent.draw();
+				// Loop over found objects removing dupes and adding visible canvas objects to array
+				for (j = 0, len = q.length; j < len; ++j) {
+					obj = q[j];
+      
+					if (dupes[obj[0]] || !obj._visible || !obj.__c.Canvas)
+						continue;
+					dupes[obj[0]] = true;
+					objs.push(obj);
+				}
+
+				// Sort objects by z level
+				objs.sort(zsort)
+				
+				// Then draw each object in that order
+				for (j = 0, len = objs.length; j < len; ++j) {
+					obj = objs[j]
+					var area = obj._mbr || obj;
+					if (rectManager.overlap(area, rect))
+						obj.draw()
+					obj._changed = false
+				}
+
+				
+				// Close rectangle clipping
 				ctx.closePath();
 				ctx.restore();
 
-				//allow entity to re-dirty_rects
-				ent._changed = false;
 			}
 
-			//empty dirty_rects
-			dirty_rects.length = 0;
-			//all merged IDs are now invalid
-			merged = {};
+			// Draw dirty rectangles for debugging, if that flag is set
+			if (Crafty.DrawManager.debugDirty === true){
+				ctx.strokeStyle = 'red';
+		        for (i = 0, l=dirty_rects.length; i < l; ++i) { 
+		            rect = dirty_rects[i];
+		            ctx.strokeRect(rect._x,rect._y,rect._w,rect._h)
+		        } 
+        	}
+            //Clean up lists etc
+            rectManager.clean()
+
 		}
 	};
 })();
@@ -9038,30 +9265,40 @@ Crafty.extend({
 * @trigger Change - when the text is changed
 * @requires Canvas or DOM
 * Component to make a text entity.
+*
+* By default, text will have the style "10px sans-serif".
 * 
-* Note: An entity with the text component is just text! If you want to write text
+* Note 1: An entity with the text component is just text! If you want to write text
 * inside an image, you need one entity for the text and another entity for the image.
 * More tips for writing text inside an image: (1) Use the z-index (from 2D component)
 * to ensure that the text is on top of the image, not the other way around; (2)
 * use .attach() (from 2D component) to glue the text to the image so they move and
 * rotate together.
+* 
+* Note 2: For DOM (but not canvas) text entities, various font settings (like
+* text-decoration and text-align) can be set using `.css()` (see DOM component). But
+* you cannot use `.css()` to set the properties which are controlled by `.textFont()`
+* or `.textColor()` -- the settings will be ignored.
 */
 Crafty.c("Text", {
 	_text: "",
-	_textFont: {
-		"type": "",
-		"weight": "",
-		"size": "",
-		"family": ""
-	},
+	defaultSize: "10px",
+	defaultFamily: "sans-serif",
 	ready: true,
 
 	init: function () {
 		this.requires("2D");
+		this._textFont = {
+			"type": "",
+			"weight": "",
+			"size": "",
+			"family": ""
+		};
 
 		this.bind("Draw", function (e) {
-			var font = this._textFont["type"] + ' ' + this._textFont["weight"] + ' ' +
-				this._textFont["size"] + ' ' + this._textFont["family"];
+			var font = this._textFont["type"] + ' ' + this._textFont["weight"] + ' '
+			 	+ (this._textFont["size"] || this.defaultSize) + ' ' 
+				+ (this._textFont["family"] || this.defaultFamily);
 
 			if (e.type === "DOM") {
 				var el = this._element,
@@ -9098,7 +9335,6 @@ Crafty.c("Text", {
     * @param text - String of text that will be inserted into the DOM or Canvas element.
     * 
     * This method will update the text inside the entity.
-    * If you use DOM, to modify the font, use the `.css` method inherited from the DOM component.
     *
     * If you need to reference attributes on the entity itself you can pass a function instead of a string.
     * 
@@ -9191,7 +9427,36 @@ Crafty.c("Text", {
 
 		this.trigger("Change");
 		return this;
+	},
+	/**@
+    * #.unselectable
+    * @comp Text
+    * @triggers Change
+    * @sign public this .unselectable()
+    *
+    * This method sets the text so that it cannot be selected (highlighted) by dragging.
+    * (Canvas text can never be highlighted, so this only matters for DOM text.)
+    * Works by changing the css property "user-select" and its variants.
+    * 
+    * @example
+    * ~~~
+    * Crafty.e("2D, DOM, Text").text('This text cannot be highlighted!').unselectable();
+    * ~~~
+    */
+	unselectable: function () {
+		// http://stackoverflow.com/questions/826782/css-rule-to-disable-text-selection-highlighting
+		if (this.has("DOM")) {
+			this.css({'-webkit-touch-callout': 'none',
+				'-webkit-user-select': 'none',
+				'-khtml-user-select': 'none',
+				'-moz-user-select': 'none',
+				'-ms-user-select': 'none',
+				'user-select': 'none'});
+			this.trigger("Change");
+		}
+		return this;
 	}
+
 });
 
 
@@ -10662,13 +10927,21 @@ Crafty.c("Delay", {
 		this._delays = [];
 		this.bind("EnterFrame", function() {
 			var now = new Date().getTime();
-			for (var index = 0; index < this._delays.length; index++) {
+			var index = this._delays.length;
+			while (--index >= 0) {
 				var item = this._delays[index];
 				if(item.start + item.delay + item.pause < now) {
 					item.func.call(this);
-					// remove item from array
-					this._delays.splice(index,1);
-					index--;
+					if (item.repeat > 0 ) {
+						// reschedule item
+						item.start = now;
+						item.pause = 0;
+						item.pauseBuffer = 0;
+						item.repeat--;
+					} else if (item.repeat <= 0) {
+						// remove item from array
+						this._delays.splice(index,1);
+					}
 				}
 			}
 		});
@@ -10692,6 +10965,9 @@ Crafty.c("Delay", {
 	* @sign public this.delay(Function callback, Number delay)
 	* @param callback - Method to execute after given amount of milliseconds
 	* @param delay - Amount of milliseconds to execute the method
+	* @param repeat - How often to repeat the delayed function. A value of 0 triggers the delayed
+	* function exactly once. A value n > 0 triggers the delayed function exactly n+1 times. A
+	* value of -1 triggers the delayed function indefinitely.
 	* 
 	* The delay method will execute a function after a given amount of time in milliseconds.
 	* 
@@ -10706,17 +10982,19 @@ Crafty.c("Delay", {
 	* console.log("start");
 	* this.delay(function() {
 		 console.log("100ms later");
-	* }, 100);
+	* }, 100, 0);
 	* ~~~
 	*/
-	delay : function(func, delay) {
-		return this._delays.push({
+	delay : function(func, delay, repeat) {
+		this._delays.push({
 			start : new Date().getTime(),
 			func : func,
 			delay : delay,
+			repeat: ( repeat < 0 ? Infinity : repeat) || 0,
 			pauseBuffer: 0,
 			pause: 0
 		});
+		return this;
 	}
 });
 
