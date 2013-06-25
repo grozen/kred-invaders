@@ -9,6 +9,8 @@ class @Game
       Crafty.viewport.width / 2 - PlayerConstants.WIDTH / 2,
       Crafty.viewport.height - PlayerConstants.HEIGHT)
 
+    @score = Crafty.e("Score")
+
     @createAliens()
 
   createAliens: ->
