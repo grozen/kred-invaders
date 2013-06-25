@@ -11,6 +11,8 @@ class @Game
 
     @score = Crafty.e("Score")
 
+    Crafty.e("2D,DOM,FPS,Text").attr(maxValues:10).bind("MessureFPS",(fps) -> @.text("FPS"+fps.value))
+
     @createAliens()
 
   createAliens: ->
