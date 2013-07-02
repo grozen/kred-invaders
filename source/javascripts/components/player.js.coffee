@@ -1,9 +1,14 @@
+self = null
+
 Crafty.c 'Player',
   init: ->
     @.requires('Keyboard')
     @body = Crafty.e('PlayerBody')
     @cannon = Crafty.e('PlayerCannon')
     @shot = Crafty.e('PlayerShot')
+    @isShooting = false
+
+    self = @
 
     @.bind("KeyDown", @keyDown)
     @.bind("KeyUp", @keyUp)
@@ -20,15 +25,22 @@ Crafty.c 'Player',
     @body.y
 
   shoot: ->
-    unless @shot.isActive()
-      @cannon.fire()
-      @shot.fireFrom(@x() + 29, @y() + 16)
-    return @
+    # I use "self" here so that I can bind to the shot and still maintain
+    # context.
+    unless self.shot.isActive()
+      self.cannon.fire()
+      self.shot.fireFrom(self.x() + 29, self.y() + 16)
+    return self
 
   keyDown: ->
     if @.isDown(Crafty.keys.SPACE)
-      @.bind("EnterFrame", @shoot)
+      unless @isShooting
+        @isShooting = true
+        @shoot()
+        @shot.bind("ShotStopped", @shoot)
 
   keyUp: ->
     if not @.isDown(Crafty.keys.SPACE)
-      @.unbind("EnterFrame", @shoot)
+      if @isShooting
+        @isShooting = false
+        @shot.unbind("ShotStopped", @shoot)

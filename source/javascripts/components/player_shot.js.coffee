@@ -9,15 +9,19 @@ Crafty.c "PlayerShot",
     @.attr(x: x, y: y, visible: true)
     @.bind("EnterFrame", @advance)
     @active = true
+    return @
 
   advance: ->
     @.move('n', PlayerConstants.SHOT_SPEED)
     @stop() if @outsidePlayfield()
+    return @
 
   stop: ->
     @.attr(x: -100, y: -100, visible: false)
     @.unbind("EnterFrame")
     @active = false
+    @.trigger("ShotStopped")
+    return @
 
   isActive: ->
     @active
