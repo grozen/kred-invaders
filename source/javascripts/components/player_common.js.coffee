@@ -7,6 +7,8 @@ class @PlayerConstants
 # Behavior common to most components making out the player
 Crafty.c 'PlayerCommon',
   init: ->
+    @tmp = null
+
     @.requires("2D, DOM, Multiway")
     @.multiway(PlayerConstants.SPEED,
       LEFT_ARROW: 180
@@ -22,5 +24,5 @@ Crafty.c 'PlayerCommon',
           y: info.y)
 
   movingOutsidePlayfield: (x, direction) ->
-    newX = x + direction.x
-    (newX < 0) or (newX + @.w > Crafty.viewport.width)
+    @tmp = x + direction.x
+    (@tmp < 0) or (@tmp + @._w > Crafty.viewport.width)
