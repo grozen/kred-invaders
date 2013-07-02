@@ -20,7 +20,7 @@ Crafty.c "PlayerShot",
     @.attr(x: -100, y: -100, visible: false)
     @.unbind("EnterFrame")
     @active = false
-    @.trigger("ShotStopped")
+    Crafty.trigger("ShotStopped", @)
     return @
 
   isActive: ->
