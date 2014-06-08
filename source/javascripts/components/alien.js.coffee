@@ -3,7 +3,7 @@ class @AlienConstants
   @HORIZONTAL_SPEED = 10
   @VERTICAL_SPEED = 25
 
-Crafty.sprite(AlienConstants.WIDTH, "images/aliens.png",
+Crafty.sprite(AlienConstants.WIDTH, imageFileAssetHashNameMap['aliens'],
   alienSprite1: [0, 0])
 
 Crafty.c "Alien",

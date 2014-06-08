@@ -1,5 +1,5 @@
-- asset_files = Dir.glob("source/images/*.png").map { |path| File.join("images", File.split(path).last) }
-- asset_files.map! { |x| %Q("#{x}") }
+- image_files = Dir.glob("source/images/*.png").map { |path| File.join("images", File.split(path).last) }
+- image_files.map! { |x| %Q("#{x}") }
 
 - important_scripts = ['components/player_common'] # Scripts that need to load before others
 - scripts = %w(player player_body player_cannon player_shot alien score).map { |c| "components/#{c}" }
@@ -9,6 +9,8 @@
 - async_important_script_files = important_scripts.map { |name| %Q("javascripts/#{name}.js") }
 
 :javascript
-  var assets = [#{asset_files.join(', ')}]
-  var async_scripts = [#{async_script_files.join(', ')}]
-  var async_important_scripts = [#{async_important_script_files.join(', ')}]
+  var imageFiles = [#{image_files.join(', ')}]
+  var imageFileAssetHashNameMap = { #{ image_files.map{ |file| file_name_info = file.match(/(.+\/([^\/]+))(\..+)/); "#{file_name_info[2]}: #{file_name_info[1]}#{file_name_info[3]}" }.join(', ') } }
+  var assets = { images: imageFiles }
+  var asyncScripts = [#{async_script_files.join(', ')}]
+  var asyncImportantScripts = [#{async_important_script_files.join(', ')}]

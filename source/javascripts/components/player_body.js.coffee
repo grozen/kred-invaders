@@ -1,4 +1,4 @@
-Crafty.sprite(PlayerConstants.WIDTH, "images/player_base.png",
+Crafty.sprite(PlayerConstants.WIDTH, imageFileAssetHashNameMap['player_base'],
   bodySprite: [0, 0])
 
 Crafty.c "PlayerBody",

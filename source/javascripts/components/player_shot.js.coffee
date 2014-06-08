@@ -1,4 +1,4 @@
-Crafty.sprite("images/shell.png", shellSprite: [0, 0, 7, 10])
+Crafty.sprite(imageFileAssetHashNameMap['shell'], shellSprite: [0, 0, 7, 10])
 
 Crafty.c "PlayerShot",
   init: ->
