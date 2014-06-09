@@ -9,6 +9,7 @@
 - async_important_script_files = important_scripts.map { |name| %Q("javascripts/#{name}.js") }
 
 :javascript
+  // Remember that MiddleMan will add hashes to asset files it identifies in the code below
   var imageFiles = [#{image_files.join(', ')}]
   var imageFileAssetHashNameMap = { #{ image_files.map{ |file| file_name_info = file.match(/(.+\/([^\/]+))(\..+)/); "#{file_name_info[2]}: #{file_name_info[1]}#{file_name_info[3]}" }.join(', ') } }
   var assets = { images: imageFiles }
