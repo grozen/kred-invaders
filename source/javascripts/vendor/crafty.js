@@ -12283,7 +12283,8 @@ Crafty.c("Text", {
      */
     textColor: function (color, strength) {
         this._strength = strength;
-        this._textColor = Crafty.toRGB(color, this._strength);
+//        this._textColor = Crafty.toRGB(color, this._strength);
+        this._textColor = color
         this.trigger("Invalidate");
         return this;
     },
