@@ -5,13 +5,13 @@ Crafty.c "PlayerCannon",
   init: ->
     @.requires("PlayerCommon, cannonSprite, SpriteAnimation")
 
-    @.animate("Fire", 0, 0, 6)
-    @.animate("Load", 6, 0, 0)
+    @.reel("Fire", PlayerConstants.FIRE_ANIMATION_DURATION, 0, 0, 7)
+    @.reel("Reload", PlayerConstants.RELOAD_ANIMATION_DURATION, 0, 0, -7)
 
     @.bind("AnimationEnd", @reload)
 
   fire: ->
-    @.playAnimation("Fire", 6, 0, 0)
+    @.animate("Fire")
 
-  reload: (info) ->
-    @.playAnimation("Load", 16, 0, 0) if info.reelId == "Fire"
+  reload: (reel) ->
+    @.animate("Reload") if reel.id == "Fire"

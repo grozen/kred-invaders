@@ -5,13 +5,21 @@ Crafty.c "PlayerBody",
   init: ->
     @.requires("PlayerCommon, bodySprite, SpriteAnimation")
 
-    @.animate("MoveRight", 0, 0, 7)
-    @.animate("MoveLeft", 7, 0, 0)
+    @.reel("MoveRight", PlayerConstants.MOVEMENT_ANIMATION_DURATION, 0, 0, 7)
+    @.reel("MoveLeft", PlayerConstants.MOVEMENT_ANIMATION_DURATION, 7, 0, -7)
 
     @.bind("NewDirection", @changedDirection)
 
+    @currentFrame = 0
+
   changedDirection: (info) ->
     switch info.x
-      when 0 then @.pauseAnimation()
-      when PlayerConstants.SPEED then @.playAnimation("MoveRight", PlayerConstants.MOVEMENT_DURATION, -1)
-      when -PlayerConstants.SPEED then @.playAnimation("MoveLeft", PlayerConstants.MOVEMENT_DURATION, -1)
+      when 0
+        @.pauseAnimation()
+        @currentFrame = @.getReel().currentFrame
+      when PlayerConstants.SPEED
+        @.animate("MoveRight", -1)
+        @.reelPosition(@currentFrame)
+      when -PlayerConstants.SPEED
+        @.animate("MoveLeft", -1)
+        @.reelPosition(@currentFrame)

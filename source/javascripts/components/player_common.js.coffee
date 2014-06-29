@@ -1,7 +1,9 @@
 class @PlayerConstants
   @WIDTH = @HEIGHT = 64
   @SPEED = 3
-  @MOVEMENT_DURATION = 8
+  @MOVEMENT_ANIMATION_DURATION = 250
+  @FIRE_ANIMATION_DURATION = 200
+  @RELOAD_ANIMATION_DURATION = 500
   @SHOT_SPEED = 8
 
 # Behavior common to most components making out the player
