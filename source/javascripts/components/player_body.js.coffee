@@ -5,8 +5,8 @@ Crafty.c "PlayerBody",
   init: ->
     @.requires("PlayerCommon, bodySprite, SpriteAnimation")
 
-    @.reel("MoveRight", PlayerConstants.MOVEMENT_ANIMATION_DURATION, 0, 0, 7)
-    @.reel("MoveLeft", PlayerConstants.MOVEMENT_ANIMATION_DURATION, 7, 0, -7)
+    @.reel("MoveRight", PlayerConstants.MOVEMENT_ANIMATION_DURATION, 0, 0, 8)
+    @.reel("MoveLeft", PlayerConstants.MOVEMENT_ANIMATION_DURATION, 7, 0, -8)
 
     @.bind("NewDirection", @changedDirection)
 

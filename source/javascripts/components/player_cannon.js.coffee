@@ -6,7 +6,7 @@ Crafty.c "PlayerCannon",
     @.requires("PlayerCommon, cannonSprite, SpriteAnimation")
 
     @.reel("Fire", PlayerConstants.FIRE_ANIMATION_DURATION, 0, 0, 7)
-    @.reel("Reload", PlayerConstants.RELOAD_ANIMATION_DURATION, 0, 0, -7)
+    @.reel("Reload", PlayerConstants.RELOAD_ANIMATION_DURATION, 6, 0, -7)
 
     @.bind("AnimationEnd", @reload)
 
