@@ -12,7 +12,7 @@ Crafty.c "Alien",
     @.requires("2D, DOM, Collision")
     @direction = 'w'
 
-  alien: (type, x, y) ->
+  alien: (type, x, y, index) ->
     @.addComponent("alienSprite#{type}")
     @.attr(x: x, y: y)
     return @

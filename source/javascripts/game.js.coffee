@@ -20,12 +20,18 @@ class @Game
     @aliens = []
     leftStart = Crafty.viewport.width / 2 - AlienConstants.WIDTH * 5.5
     bottomStart = 400
+    alienIndex = 0
     for column in [0...11]
       for row in [0...5]
         alien = Crafty.e("Alien").alien(
           1,
           leftStart + AlienConstants.WIDTH * column,
-          bottomStart - AlienConstants.HEIGHT * row)
+          bottomStart - AlienConstants.HEIGHT * row,
+          alienIndex++)
+
+        alien.checkHits('PlayerShot')
+        alien.bind("HitOn", @alienHit)
+
         @aliens.push(alien)
 
     @leftmostAlien = @aliens[0]
@@ -49,3 +55,5 @@ class @Game
     (@rightmostAlien.direction == 'e' and
       (@rightmostAlien.x + AlienConstants.WIDTH + AlienConstants.HORIZONTAL_SPEED > Crafty.viewport.width))
 
+  alienHit: ->
+    return 8
