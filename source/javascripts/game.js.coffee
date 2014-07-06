@@ -11,15 +11,11 @@ class @Game
 
     @score = Crafty.e("Score")
 
-    # FPS display, remove this eventually
-    Crafty.e("2D,DOM,FPS,Text").attr(maxValues:10).bind("MessureFPS",(fps) -> @.text("FPS"+fps.value))
-
     @createAliens()
 
   createAliens: ->
     # Create aliens
-    @alienMoveInterval = 50
-    @alienMoveCounter = @alienMoveInterval
+    @alienMoveCounter = 0
 
     @aliens = []
     leftStart = Crafty.viewport.width / 2 - AlienConstants.WIDTH * 5.5
@@ -35,14 +31,14 @@ class @Game
     @leftmostAlien = @aliens[0]
     @rightmostAlien = @aliens[@aliens.length - 1]
 
-  update: =>
-    @handleAlienMovement()
+  update: (updateData) =>
+    @handleAlienMovement(updateData.dt)
 
-  handleAlienMovement: ->
-    if @alienMoveCounter
-      @alienMoveCounter--
+  handleAlienMovement: (dt) ->
+    if @alienMoveCounter < AlienConstants.MOVEMENT_INTERVAL
+      @alienMoveCounter += dt
     else
-      @alienMoveCounter = @alienMoveInterval
+      @alienMoveCounter = 0
       if @aliensMovingOutsideScreen()
         alien.descend() for alien in @aliens
       else

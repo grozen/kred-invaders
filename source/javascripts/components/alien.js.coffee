@@ -2,6 +2,7 @@ class @AlienConstants
   @WIDTH = @HEIGHT = 48
   @HORIZONTAL_SPEED = 10
   @VERTICAL_SPEED = 25
+  @MOVEMENT_INTERVAL = 2000
 
 Crafty.sprite(AlienConstants.WIDTH, imageFileAssetHashNameMap['aliens'],
   alienSprite1: [0, 0])
