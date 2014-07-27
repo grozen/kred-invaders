@@ -5,6 +5,8 @@ Crafty.c "PlayerShot",
     @.requires("2D, DOM, shellSprite, Collision")
     @stop()
 
+    @.checkHits('Alien, Ship, Shield')
+
   fireFrom: (x, y) ->
     @.attr(x: x, y: y, visible: true)
     @.bind("EnterFrame", @advance)

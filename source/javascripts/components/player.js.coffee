@@ -9,6 +9,13 @@ Crafty.c 'Player',
     @.bind("KeyDown", @keyDown)
     @.bind("KeyUp", @keyUp)
 
+    @shotHit = (hitInfo) =>
+      # Later on we will fire more event types here
+      target = hitInfo[0].obj
+      @.trigger('AlienHit', target)
+
+    @shot.bind("HitOn", @shotHit)
+
   setPosition: (x, y) ->
     @body.attr(x: x, y: y)
     @cannon.attr(x: x, y: y)

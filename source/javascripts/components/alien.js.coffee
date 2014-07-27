@@ -12,9 +12,12 @@ Crafty.c "Alien",
     @.requires("2D, DOM, Collision")
     @direction = 'w'
 
+  # There are 3 alien types, 1-3
   alien: (type, x, y, index) ->
     @.addComponent("alienSprite#{type}")
     @.attr(x: x, y: y)
+    @index = index
+    @type = type
     return @
 
   advance: ->
@@ -23,3 +26,6 @@ Crafty.c "Alien",
   descend: ->
     @.move('s', AlienConstants.VERTICAL_SPEED)
     if @direction is 'w' then @direction = 'e' else @direction = 'w'
+
+  pointsWorth: ->
+    50 * @type
