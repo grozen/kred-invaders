@@ -12,6 +12,9 @@ Crafty.c "Alien",
     @.requires("2D, DOM, Collision")
     @direction = 'w'
 
+  remove: ->
+    @node.remove()
+
   # There are 3 alien types, 1-3
   alien: (type, x, y, index) ->
     @.addComponent("alienSprite#{type}")
@@ -29,3 +32,6 @@ Crafty.c "Alien",
 
   pointsWorth: ->
     50 * @type
+
+  setContainingNode: (node) ->
+    @node = node
