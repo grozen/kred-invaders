@@ -19,12 +19,11 @@ class @Game
     @player.bind("ShieldHit", @shieldHit)
 
   createAliens: ->
-    # Create aliens
     @alienMoveCounter = 0
 
     @aliens = new DLL.DoublyLinkedList()
     leftStart = Crafty.viewport.width / 2 - AlienConstants.WIDTH * 5.5
-    bottomStart = 400
+    bottomStart = 300
     alienIndex = 0
     for column in [0...11]
       for row in [0...5]
@@ -38,7 +37,24 @@ class @Game
         alien.setContainingNode(node)
 
   createShields: ->
-    Crafty.e("Shield").shield(400, 450)
+    spacing = 80
+    middle = Crafty.viewport.width / 2
+    @createShieldFormation(middle - spacing * 3, 500)
+    @createShieldFormation(middle - spacing, 500)
+    @createShieldFormation(middle + spacing, 500)
+    @createShieldFormation(middle + spacing * 3, 500)
+
+  createShieldFormation: (x, y) ->
+    size = ShieldConstants.WIDTH
+    Crafty.e("Shield").shield(x - 0.5 * size, y - 2 * size)
+    Crafty.e("Shield").shield(x - 1.5 * size, y - 2 * size)
+    Crafty.e("Shield").shield(x + 0.5 * size, y - 2 * size)
+    Crafty.e("Shield").shield(x - 1.5 * size, y - size)
+    Crafty.e("Shield").shield(x + 0.5 * size, y - size)
+    Crafty.e("Shield").shield(x - 2.5 * size, y - size)
+    Crafty.e("Shield").shield(x + 1.5 * size, y - size)
+    Crafty.e("Shield").shield(x - 2.5 * size, y)
+    Crafty.e("Shield").shield(x + 1.5 * size, y)
 
   leftmostAlien: ->
     @aliens.head().data

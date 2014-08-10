@@ -1,4 +1,7 @@
-Crafty.sprite(12, imageFileAssetHashNameMap['shield'],
+class @ShieldConstants
+  @WIDTH = @HEIGHT = 12
+
+Crafty.sprite(ShieldConstants.WIDTH, imageFileAssetHashNameMap['shield'],
   shieldSprite: [0, 0])
 
 Crafty.c "Shield",
