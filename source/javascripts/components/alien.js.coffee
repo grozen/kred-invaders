@@ -9,7 +9,7 @@ Crafty.sprite(AlienConstants.WIDTH, imageFileAssetHashNameMap['aliens'],
 
 Crafty.c "Alien",
   init: ->
-    @.requires("2D, DOM, Collision")
+    @.requires("2D, DOM")
     @direction = 'w'
 
   remove: ->
