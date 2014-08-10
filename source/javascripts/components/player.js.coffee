@@ -14,6 +14,8 @@ Crafty.c 'Player',
       target = hitInfo[0].obj
       @.trigger('AlienHit', target)
 
+      @shot.stop()
+
     @shot.bind("HitOn", @shotHit)
 
   setPosition: (x, y) ->
