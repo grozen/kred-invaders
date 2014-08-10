@@ -10,9 +10,11 @@ Crafty.c 'Player',
     @.bind("KeyUp", @keyUp)
 
     @shotHit = (hitInfo) =>
-      # Later on we will fire more event types here
       target = hitInfo[0].obj
-      @.trigger('AlienHit', target)
+      if target.has('Alien')
+        @.trigger('AlienHit', target)
+      if target.has('Shield')
+        @.trigger('ShieldHit', target)
 
       @shot.stop()
 

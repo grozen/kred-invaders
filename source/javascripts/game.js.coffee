@@ -13,9 +13,10 @@ class @Game
     @score = Crafty.e("Score")
 
     @createAliens()
+    @createShields()
 
     @player.bind("AlienHit", @alienHit)
-
+    @player.bind("ShieldHit", @shieldHit)
 
   createAliens: ->
     # Create aliens
@@ -35,6 +36,9 @@ class @Game
 
         node = @aliens.append(alien)
         alien.setContainingNode(node)
+
+  createShields: ->
+    Crafty.e("Shield").shield(400, 450)
 
   leftmostAlien: ->
     @aliens.head().data
@@ -70,3 +74,6 @@ class @Game
     @score.addScore(alien.pointsWorth())
     alien.destroy()
     #@checkVictory()
+
+  shieldHit: (shield) =>
+    shield.degrade()
