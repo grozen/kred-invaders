@@ -3,7 +3,6 @@ class @Game
     @initialize()
 
   initialize: ->
-    # Create the player
     @player = Crafty.e("Player")
 
     @player.setPosition(
@@ -13,6 +12,7 @@ class @Game
     @score = Crafty.e("Score")
 
     @createAliens()
+    @createAlienShots()
     @createShields()
 
     @player.bind("AlienHit", @alienHit)
@@ -35,6 +35,10 @@ class @Game
 
         node = @aliens.append(alien)
         alien.setContainingNode(node)
+
+  createAlienShots: ->
+    @alienShots = new DLL.DoublyLinkedList()
+    # Create a pool of shots
 
   createShields: ->
     spacing = 80
