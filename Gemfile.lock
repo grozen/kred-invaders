@@ -22,6 +22,7 @@ GEM
       sass (>= 3.2, < 3.5)
     erubis (2.7.0)
     execjs (2.2.1)
+    ffi (1.9.3)
     ffi (1.9.3-x64-mingw32)
     fssm (0.2.10)
     haml (4.0.5)
@@ -101,6 +102,7 @@ GEM
       json (>= 1.8.0)
 
 PLATFORMS
+  ruby
   x64-mingw32
 
 DEPENDENCIES
