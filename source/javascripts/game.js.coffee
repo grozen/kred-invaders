@@ -23,14 +23,14 @@ class @Game
 
     @aliens = new DLL.DoublyLinkedList()
     leftStart = Crafty.viewport.width / 2 - AlienConstants.WIDTH * 5.5
-    bottomStart = 300
+    topStart = 100
     alienIndex = 0
     for column in [0...11]
       for row in [0...5]
         alien = Crafty.e("Alien").alien(
-          1,
+          3 - Math.floor((row + 1) / 2),
           leftStart + AlienConstants.WIDTH * column,
-          bottomStart - AlienConstants.HEIGHT * row,
+          topStart + AlienConstants.HEIGHT * row,
           alienIndex++)
 
         node = @aliens.append(alien)

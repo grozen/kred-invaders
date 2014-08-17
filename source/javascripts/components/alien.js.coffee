@@ -5,6 +5,8 @@ class @AlienConstants
   @MOVEMENT_INTERVAL = 2000
 
 Crafty.sprite(AlienConstants.WIDTH, imageFileAssetHashNameMap['alien1'], alien1: [0, 0])
+Crafty.sprite(AlienConstants.WIDTH, imageFileAssetHashNameMap['alien2'], alien2: [0, 0])
+Crafty.sprite(AlienConstants.WIDTH, imageFileAssetHashNameMap['alien3'], alien3: [0, 0])
 
 Crafty.c "Alien",
   init: ->
