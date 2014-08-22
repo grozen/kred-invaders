@@ -38,7 +38,10 @@ class @Game
 
   createAlienShots: ->
     @alienShots = new DLL.DoublyLinkedList()
-    # Create a pool of shots
+    for _ in [0..AlienConstants.MAX_SHOTS]
+      alienShot = Crafty.e("AlienShot")
+      @alienShots.append(alienShot)
+      alienShot.setContainingList(@alienShots)
 
   createShields: ->
     spacing = 80
@@ -67,11 +70,14 @@ class @Game
     @aliens.tail().data
 
   update: (updateData) =>
-    @handleAlienMovement(updateData.dt)
+    if (@handleAlienMovement(updateData.dt))
+      @handleAlienShots
 
+  # Returns true if the aliens moved
   handleAlienMovement: (dt) ->
     if @alienMoveCounter < AlienConstants.MOVEMENT_INTERVAL
       @alienMoveCounter += dt
+      false
     else
       @alienMoveCounter = 0
 
@@ -84,6 +90,15 @@ class @Game
         while (alienNode)
           alienNode.data.advance()
           alienNode = alienNode.next
+
+      true
+
+  handleAlienShots: ->
+    alienNode = @aliens.head()
+
+    while (alienNode)
+      # TODO: shoot the player here
+      alienNode = alienNode.next
 
   aliensMovingOutsideScreen: ->
     (@leftmostAlien().direction == 'w' and (@leftmostAlien().x - AlienConstants.HORIZONTAL_SPEED < 0)) or

@@ -25,3 +25,6 @@ Crafty.c "AlienShot",
 
   outsidePlayfield: ->
     @.y > Crafty.viewport.height
+
+  setContainingList: (shotList) ->
+    @containingList = shotList
