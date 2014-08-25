@@ -5,7 +5,7 @@ Crafty.c "PlayerShot",
     @.requires("2D, DOM, shellSprite, Collision")
     @stop()
 
-    @.checkHits('Alien, Ship, Shield')
+    @.checkHits('Alien, Ship, Shield, AlienShot')
 
   fireFrom: (x, y) ->
     @.attr(x: x, y: y, visible: true)

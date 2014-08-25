@@ -13,11 +13,12 @@ Crafty.c "AlienShot",
   init: ->
     @.requires("2D, DOM, alienShot, Collision, SpriteAnimation")
 
+    @.attr(visible: false)
     @.reel("Zap", AlienShotConstants.ZAP_INTERVAL, 0, 0, 2)
     @.checkHits('Player, Shield')
 
   fireBy: (alien) ->
-    x = alien.x + alien.w/ 2
+    x = alien.x + alien.w / 2
     y = alien.y + alien.h
     @.attr(x: x, y: y, visible: true)
     @.animate("Zap", -1)
@@ -33,7 +34,7 @@ Crafty.c "AlienShot",
     return @
 
   stop: ->
-    @.attr(x: -100, y: -100, visible: false)
+    @.attr(x: -100, y: 100, visible: false)
     @.pauseAnimation()
 
     @.unbind("EnterFrame", @advance)
@@ -49,3 +50,6 @@ Crafty.c "AlienShot",
 
   setContainingList: (shotList) ->
     @containingList = shotList
+
+  pointsWorth: ->
+    25

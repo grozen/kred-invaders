@@ -17,6 +17,7 @@ class @Game
 
     @player.bind("AlienHit", @alienHit)
     @player.bind("ShieldHit", @shieldHit)
+    @player.bind("AlienShotHit", @alienShotHit)
 
   createAliens: ->
     @alienMoveCounter = 0
@@ -38,7 +39,7 @@ class @Game
 
   createAlienShots: ->
     @alienShots = new DLL.DoublyLinkedList()
-    for _ in [0..AlienShotConstants.MAX_SHOTS]
+    for _ in [0..AlienShotConstants.MAX_SHOTS - 1]
       alienShot = Crafty.e("AlienShot")
       alienShotNode = @alienShots.append(alienShot)
 
@@ -119,3 +120,7 @@ class @Game
 
   shieldHit: (shield) =>
     shield.degrade()
+
+  alienShotHit: (alienShot) =>
+    @score.addScore(alienShot.pointsWorth())
+    alienShot.stop()

@@ -15,6 +15,8 @@ Crafty.c 'Player',
         @.trigger('AlienHit', target)
       if target.has('Shield')
         @.trigger('ShieldHit', target)
+      if target.has('AlienShot')
+        @.trigger('AlienShotHit', target)
 
       @shot.stop()
 
