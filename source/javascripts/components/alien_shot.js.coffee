@@ -15,7 +15,18 @@ Crafty.c "AlienShot",
 
     @.attr(visible: false)
     @.reel("Zap", AlienShotConstants.ZAP_INTERVAL, 0, 0, 2)
-    @.checkHits('Player, Shield')
+    @.checkHits('PlayerBody, Shield')
+
+    @shotHit = (hitInfo) =>
+      target = hitInfo[0].obj
+      if target.has('Shield')
+        @.trigger('ShieldHit', target)
+      if target.has('PlayerBody')
+        @.trigger('PlayerHit', target)
+
+      @stop()
+
+    @bind("HitOn", @shotHit)
 
   fireBy: (alien) ->
     x = alien.x + alien.w / 2

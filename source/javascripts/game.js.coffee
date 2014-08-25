@@ -41,6 +41,8 @@ class @Game
     @alienShots = new DLL.DoublyLinkedList()
     for _ in [0..AlienShotConstants.MAX_SHOTS - 1]
       alienShot = Crafty.e("AlienShot")
+      alienShot.bind("ShieldHit", @shieldHit)
+      alienShot.bind("PlayerHit", @playerHit)
       alienShotNode = @alienShots.append(alienShot)
 
       alienShot.setContainingNode(alienShotNode)
@@ -124,3 +126,7 @@ class @Game
   alienShotHit: (alienShot) =>
     @score.addScore(alienShot.pointsWorth())
     alienShot.stop()
+
+  playerHit: (player) =>
+    #TODO: Totally do stuff here
+    6
