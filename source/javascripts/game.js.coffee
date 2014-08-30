@@ -37,6 +37,8 @@ class @Game
         node = @aliens.append(alien)
         alien.setContainingNode(node)
 
+    @alienCount = @aliens.size()
+
   createAlienShots: ->
     @alienShots = new DLL.DoublyLinkedList()
     for _ in [0..AlienShotConstants.MAX_SHOTS - 1]
@@ -80,7 +82,7 @@ class @Game
 
   # Returns true if the aliens moved
   handleAlienMovement: (dt) ->
-    if @alienMoveCounter < AlienConstants.MOVEMENT_INTERVAL
+    if @alienMoveCounter < AlienConstants.MOVEMENT_INTERVAL / Math.pow(80, 1 - (@aliens.size() / @alienCount))
       @alienMoveCounter += dt
       false
     else
