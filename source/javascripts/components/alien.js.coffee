@@ -3,6 +3,11 @@ class @AlienConstants
   @HORIZONTAL_SPEED = 10
   @VERTICAL_SPEED = 25
   @MOVEMENT_INTERVAL = 2000
+  @HITBOX = {
+              1: (-> [[8,8], [39,8], [39,37], [8,37]]),
+              2: (-> [[8,8], [39,8], [39,37], [8,37]]),
+              3: (-> [[8,8], [39,8], [39,37], [8,37]])
+            }
 
 Crafty.sprite(AlienConstants.WIDTH, imageFileAssetHashNameMap['alien1'], alien1: [0, 0])
 Crafty.sprite(AlienConstants.WIDTH, imageFileAssetHashNameMap['alien2'], alien2: [0, 0])
@@ -10,7 +15,7 @@ Crafty.sprite(AlienConstants.WIDTH, imageFileAssetHashNameMap['alien3'], alien3:
 
 Crafty.c "Alien",
   init: ->
-    @.requires("2D, DOM, SpriteAnimation")
+    @.requires("2D, DOM, SpriteAnimation, Collision, WiredHitBox")
     @direction = 'w'
 
   remove: ->
@@ -22,6 +27,9 @@ Crafty.c "Alien",
     @.attr(x: x, y: y)
     @index = index
     @type = type
+    # AlienConstants.HITBOX actually returns a function you must call and this
+    # allows a brand new array each time.
+    @.collision(new Crafty.polygon((AlienConstants.HITBOX[type])()))
 
     @.reel("move", 1, 0, 0, 2)
     @.reel("move")
