@@ -15,7 +15,12 @@ class @Game
     @createAlienShots()
     @createShields()
 
+    #TODO: Remove this temp spaceship
+    spaceship = Crafty.e("Spaceship")
+    spaceship.attr(x: 365, y: 400)
+
     @player.bind("AlienHit", @alienHit)
+    @player.bind("SpaceshipHit", @spaceshipHit)
     @player.bind("ShieldHit", @shieldHit)
     @player.bind("AlienShotHit", @alienShotHit)
 
@@ -121,6 +126,12 @@ class @Game
     @score.addScore(alien.pointsWorth())
     alien.destroy()
     #@checkVictory()
+
+  spaceshipHit: (hitDataArray) =>
+    playerShot = hitDataArray[0]
+    spaceship = hitDataArray[1]
+    @score.addScore(spaceship.pointsWorth(playerShot))
+    spaceship.destroy()
 
   shieldHit: (shield) =>
     shield.degrade()

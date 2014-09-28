@@ -2,9 +2,13 @@
 - image_files.map! { |x| %Q("#{x}") }
 
 - important_scripts = ['components/player_common'] # Scripts that need to load before others
-- scripts = %w(player player_body player_cannon player_shot alien score shield alien_shot).map { |c| "components/#{c}" }
+// Add components
+- scripts = %w(player player_body player_cannon player_shot alien score shield alien_shot spaceship).map { |c| "components/#{c}" }
+// Add Scenes
 - scripts += %w(playfield).map { |s| "scenes/#{s}" }
+// General scripts
 - scripts += %w(game)
+
 - async_script_files = scripts.map { |name| %Q("javascripts/#{name}.js") }
 - async_important_script_files = important_scripts.map { |name| %Q("javascripts/#{name}.js") }
 
