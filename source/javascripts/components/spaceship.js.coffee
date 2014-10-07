@@ -1,7 +1,9 @@
 class @ShipConstants
-  @SPEED = 25
+  @SPEED = 5
   @HEIGHT = 30
   @WIDTH = 78
+  @FLIGHT_Y = 100
+  @FLIGHT_CHECK_INTERVAL = 10000
 
 Crafty.sprite(ShipConstants.WIDTH, ShipConstants.HEIGHT, imageFileAssetHashNameMap['spaceship'], spaceshipSprite: [0, 0])
 
@@ -22,3 +24,15 @@ Crafty.c "Spaceship",
 
   destroy: ->
     #@ TODO: Get destroyed
+
+  flyTowards: (direction) ->
+    @direction = direction
+
+    switch direction
+      when 'w'
+        @.setPosition(Crafty.viewport.width + ShipConstants.WIDTH, ShipConstants.FLIGHT_Y)
+      else
+        @.setPosition(-ShipConstants.WIDTH, ShipConstants.FLIGHT_Y)
+
+  advance: ->
+    @.move(@direction, ShipConstants.SPEED)
