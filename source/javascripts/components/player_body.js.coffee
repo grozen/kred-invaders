@@ -3,10 +3,12 @@ Crafty.sprite(PlayerConstants.WIDTH, imageFileAssetHashNameMap['player_base'],
 
 Crafty.c "PlayerBody",
   init: ->
-    @.requires("PlayerCommon, bodySprite, SpriteAnimation, Collision")
+    @.requires("PlayerCommon, bodySprite, SpriteAnimation, Collision, WiredHitBox")
 
     @.reel("MoveRight", PlayerConstants.MOVEMENT_ANIMATION_DURATION, 0, 0, 8)
     @.reel("MoveLeft", PlayerConstants.MOVEMENT_ANIMATION_DURATION, 7, 0, -8)
+
+    @.collision(new Crafty.polygon([12, 32], [12,64], [52, 64], [52, 32]))
 
     @.bind("NewDirection", @changedDirection)
 
