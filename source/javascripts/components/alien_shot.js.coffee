@@ -5,6 +5,8 @@ class @AlienShotConstants
   @MAX_SHOTS = 8
   @BASE_SHOT_CHANCE = 2
   @ZAP_INTERVAL = 200
+  @SHOT_IDLE_X = -100
+  @SHOT_IDLE_Y = 100
 
 Crafty.sprite(AlienShotConstants.WIDTH, AlienShotConstants.HEIGHT, imageFileAssetHashNameMap['alien_shot'],
   alienShot: [0, 0])
@@ -45,7 +47,7 @@ Crafty.c "AlienShot",
     return @
 
   stop: ->
-    @.attr(x: -100, y: 100, visible: false)
+    @.attr(x: AlienShotConstants.SHOT_IDLE_X, y: AlienShotConstants.SHOT_IDLE_Y, visible: false)
     @.pauseAnimation()
 
     @.unbind("EnterFrame", @advance)

@@ -5,6 +5,8 @@ class @PlayerConstants
   @FIRE_ANIMATION_DURATION = 300
   @RELOAD_ANIMATION_DURATION = 500
   @SHOT_SPEED = 8
+  @SHOT_IDLE_X = -100
+  @SHOT_IDLE_Y = -100
 
 # Behavior common to most components making out the player
 Crafty.c 'PlayerCommon',

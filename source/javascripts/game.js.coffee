@@ -16,17 +16,15 @@ class @Game
     @createShields()
     @createSpaceship()
 
-    #TODO: Remove this temp spaceship
-    spaceship = Crafty.e("Spaceship")
-    spaceship.attr(x: 365, y: 400)
-
     @player.bind("AlienHit", @alienHit)
     @player.bind("SpaceshipHit", @spaceshipHit)
     @player.bind("ShieldHit", @shieldHit)
     @player.bind("AlienShotHit", @alienShotHit)
 
   createSpaceship: ->
-    #TODO: Create the ship, place it outside screen
+    @shipSpawnCounter = 0
+    @spaceship = Crafty.e("Spaceship")
+    @spaceship.destroy()
 
   createAliens: ->
     @alienMoveCounter = 0
@@ -92,8 +90,12 @@ class @Game
     @handleShipSpawning(updateData.dt)
 
   handleShipSpawning: (dt) ->
-    #TODO: Spawn ship if chance would have it, random direction.
-    # Do not spawn a ship while one is flying
+    if @shipSpawnCounter < ShipConstants.SPAWN_CHANCE_INTERVAL
+      @shipSpawnCounter += dt unless @spaceship.isFlying()
+    else
+      @shipSpawnCounter = 0
+      if Random.getInRange(0, 100) < ShipConstants.SPAWN_CHANCE
+        @spaceship.flyTowards(if Math.round(Math.random()) then 'w' else 'e')
 
   # Returns true if the aliens moved
   handleAlienMovement: (dt) ->
@@ -102,7 +104,6 @@ class @Game
       false
     else
       @alienMoveCounter = 0
-
       alienNode = @aliens.head()
       if @aliensMovingOutsideScreen()
         while (alienNode)
