@@ -30,5 +30,5 @@ Crafty.c 'Lives',
     @updateVisibility()
 
   updateVisibility: ->
-    (@sprites[i].attr(visible: true) for i in [0..(@lives - 1)])
+    (@sprites[i].attr(visible: true) for i in [0..(@lives - 1)]) if @lives > 0
     (@sprites[i].attr(visible: false) for i in [@lives..(PlayerLifeConstants.MAX_LIVES - 1)])
