@@ -3,7 +3,7 @@
 
 - important_scripts = ['components/player_common'] # Scripts that need to load before others
 // Add components
-- scripts = %w(player player_body player_cannon player_shot alien score shield alien_shot spaceship).map { |c| "components/#{c}" }
+- scripts = %w(player player_body player_cannon player_shot alien score lives shield alien_shot spaceship).map { |c| "components/#{c}" }
 // Add Scenes
 - scripts += %w(playfield).map { |s| "scenes/#{s}" }
 // General scripts

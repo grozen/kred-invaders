@@ -10,6 +10,9 @@ class @Game
       Crafty.viewport.height - PlayerConstants.HEIGHT)
 
     @score = Crafty.e("Score")
+    @lives = Crafty.e("Lives")
+
+    Crafty.e("playerLife").attr(x: 400, y: 400, visible: true)
 
     @createAliens()
     @createAlienShots()
@@ -152,5 +155,5 @@ class @Game
     alienShot.stop()
 
   playerHit: (player) =>
-    #TODO: Totally do stuff here
-    6
+    #TODO: Have the player "explode"
+    @lives.lifeDown()
