@@ -1,9 +1,12 @@
+Crafty.sprite(imageFileAssetHashNameMap['player_explosion'], playerExplosion: [0, 0])
+
 Crafty.c 'Player',
   init: ->
     @.requires('Keyboard')
     @body = Crafty.e('PlayerBody')
     @cannon = Crafty.e('PlayerCannon')
     @shot = Crafty.e('PlayerShot')
+    @explosion = Crafty.e('Explosion').explosion('player_explosion', 3, 1000, 2)
     @isShooting = false
 
     @.bind("KeyDown", @keyDown)
@@ -24,6 +27,8 @@ Crafty.c 'Player',
 
     @shot.bind("HitOn", @shotHit)
 
+    @explosion.bind("ExplosionEnded", => @.trigger("Died", @))
+
   setPosition: (x, y) ->
     @body.attr(x: x, y: y)
     @cannon.attr(x: x, y: y)
@@ -40,6 +45,9 @@ Crafty.c 'Player',
       @cannon.fire()
       @shot.fireFrom(@x() + 29, @y() + 16)
     return @
+
+  die: ->
+    @explosion.explodeAt(@body.x, @body.y)
 
   keyDown: ->
     if @.isDown(Crafty.keys.SPACE)

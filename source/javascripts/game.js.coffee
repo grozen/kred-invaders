@@ -23,6 +23,7 @@ class @Game
     @player.bind("SpaceshipHit", @spaceshipHit)
     @player.bind("ShieldHit", @shieldHit)
     @player.bind("AlienShotHit", @alienShotHit)
+    @player.bind("Died", @playerDied)
 
   createSpaceship: ->
     @shipSpawnCounter = 0
@@ -139,7 +140,7 @@ class @Game
   alienHit: (alien) =>
     @score.addScore(alien.pointsWorth())
     alien.destroy()
-    #@checkVictory()
+    #TODO: @checkVictory() ?
 
   spaceshipHit: (hitDataArray) =>
     playerShot = hitDataArray[0]
@@ -155,5 +156,9 @@ class @Game
     alienShot.stop()
 
   playerHit: (player) =>
-    #TODO: Have the player "explode"
     @lives.lifeDown()
+    @player.die()
+
+  playerDied: (player) =>
+    console.log("OMG I am so dead!")
+    #TODO: Check if player is out of life, end game if so
