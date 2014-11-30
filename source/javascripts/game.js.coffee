@@ -12,6 +12,8 @@ class @Game
     @score = Crafty.e("Score")
     @lives = Crafty.e("Lives")
 
+    @score.bind("LifeIncrement", => @lives.lifeUp())
+
     Crafty.e("playerLife").attr(x: 400, y: 400, visible: true)
 
     @createAliens()

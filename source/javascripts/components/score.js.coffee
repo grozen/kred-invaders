@@ -1,6 +1,7 @@
 class @ScoreConstants
   @MARGIN_Y = 20
   @MARGIN_X = 20
+  @LIFE_GAIN_SCORE = 2500
 
 Crafty.c 'Score',
   init: ->
@@ -11,11 +12,9 @@ Crafty.c 'Score',
     @.updateText().unselectable().textColor('#FFFF00').textFont(size: '14px')
 
   addScore: (add) ->
+    @.trigger("LifeIncrement", @) if Math.floor((@score + add) / ScoreConstants.LIFE_GAIN_SCORE) > Math.floor(@score / ScoreConstants.LIFE_GAIN_SCORE)
     @score += add
     @updateText()
 
-  getText: ->
-    "Score: #{@score}"
-
   updateText: ->
-    @.text(@getText)
+    @.text("Score: #{@score}")
