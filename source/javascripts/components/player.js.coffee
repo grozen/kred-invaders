@@ -1,4 +1,4 @@
-Crafty.sprite(imageFileAssetHashNameMap['player_explosion'], playerExplosion: [0, 0])
+Crafty.sprite(PlayerConstants.WIDTH, imageFileAssetHashNameMap['player_explosion'], playerExplosion: [0, 0])
 
 Crafty.c 'Player',
   init: ->
@@ -6,7 +6,7 @@ Crafty.c 'Player',
     @body = Crafty.e('PlayerBody')
     @cannon = Crafty.e('PlayerCannon')
     @shot = Crafty.e('PlayerShot')
-    @explosion = Crafty.e('Explosion').explosion('player_explosion', 3, 1000, 2)
+    @explosion = Crafty.e('Explosion').explosion('playerExplosion', 3, 1000, 2)
     @isShooting = false
 
     @.bind("KeyDown", @keyDown)
