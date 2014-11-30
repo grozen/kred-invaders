@@ -23,7 +23,7 @@ class @Game
     @player.bind("SpaceshipHit", @spaceshipHit)
     @player.bind("ShieldHit", @shieldHit)
     @player.bind("AlienShotHit", @alienShotHit)
-    @player.bind("Died", @playerDied)
+    @player.bind("Respawning", @playerRespawning)
 
   createSpaceship: ->
     @shipSpawnCounter = 0
@@ -157,10 +157,8 @@ class @Game
 
   playerHit: (player) =>
     @lives.lifeDown()
-    @player.disableControl()
     @player.die()
 
-  playerDied: (player) =>
+  playerRespawning: (player) =>
     console.log("OMG I am so dead!")
-    @player.enableControl()
     #TODO: Check if player is out of life, end game if so

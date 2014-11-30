@@ -26,7 +26,7 @@ Crafty.c 'Player',
 
     @shot.bind("HitOn", @shotHit)
 
-    @explosion.bind("ExplosionEnded", => @.trigger("Died", @))
+    @explosion.bind("ExplosionEnded", => @.respawn())
 
   setPosition: (x, y) ->
     @body.attr(x: x, y: y)
@@ -39,6 +39,14 @@ Crafty.c 'Player',
   y: ->
     @body.y
 
+  show: ->
+    @body.attr(visible: true)
+    @cannon.attr(visible: true)
+
+  hide: ->
+    @body.attr(visible: false)
+    @cannon.attr(visible: false)
+
   shoot: ->
     unless @shot.isActive()
       @cannon.fire()
@@ -47,6 +55,13 @@ Crafty.c 'Player',
 
   die: ->
     @explosion.explodeAt(@body.x, @body.y)
+    @.disableControl()
+    @.hide()
+
+  respawn: ->
+    @.enableControl()
+    @.show()
+    @.trigger("Respawning", @)
 
   keyDown: ->
     if @.isDown(Crafty.keys.SPACE)
