@@ -9,8 +9,7 @@ Crafty.c 'Player',
     @explosion = Crafty.e('Explosion').explosion('playerExplosion', 3, 1000, 2)
     @isShooting = false
 
-    @.bind("KeyDown", @keyDown)
-    @.bind("KeyUp", @keyUp)
+    @.enableControl()
 
     @shotHit = (hitInfo) =>
       target = hitInfo[0].obj
@@ -61,3 +60,15 @@ Crafty.c 'Player',
       if @isShooting
         @isShooting = false
         @.unbind("ShotStopped", @shoot)
+
+  enableControl: ->
+    @body.enableControl()
+    @cannon.enableControl()
+    @.bind("KeyDown", @keyDown)
+    @.bind("KeyUp", @keyUp)
+
+  disableControl: ->
+    @body.disableControl()
+    @cannon.disableControl()
+    @.unbind("KeyDown", @keyDown)
+    @.unbind("KeyUp", @keyUp)

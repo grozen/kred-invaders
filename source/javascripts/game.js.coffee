@@ -157,8 +157,10 @@ class @Game
 
   playerHit: (player) =>
     @lives.lifeDown()
+    @player.disableControl()
     @player.die()
 
   playerDied: (player) =>
     console.log("OMG I am so dead!")
+    @player.enableControl()
     #TODO: Check if player is out of life, end game if so
