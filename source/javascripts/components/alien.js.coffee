@@ -30,7 +30,7 @@ Crafty.c "Alien",
     return @
 
   # There are 3 alien types, 1-3
-  alien: (type, x, y, index) ->
+  alien: (type, x, y) ->
     @.addComponent("alien#{type}")
 
     @spawnX = x

@@ -76,6 +76,13 @@ class @Game
       alienShot.setContainingNode(alienShotNode)
       alienShot.setContainingList(@alienShots)
 
+  resetAlienShots: ->
+    #TODO: Use this when the player wins
+    alienShotNode = @alienShots.head()
+    while (alienShot)
+      alienShotNode.data.stop()
+      alienShotNode = alienShotNode.next
+
   createShields: ->
     spacing = 80
     middle = Crafty.viewport.width / 2
