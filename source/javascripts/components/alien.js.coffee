@@ -1,4 +1,6 @@
 class @AlienConstants
+  @IDLE_X = -200
+  @IDLE_Y = 400
   @WIDTH = @HEIGHT = 48
   @HORIZONTAL_SPEED = 10
   @VERTICAL_SPEED = 25
@@ -18,15 +20,24 @@ Crafty.c "Alien",
     @.requires("2D, DOM, SpriteAnimation, Collision, WiredHitBox")
     @direction = 'w'
 
-  remove: ->
+  respawn: ->
+    @.attr(x: @spawnX, y: @spawnY, visible: true)
+    return @
+
+  die: ->
+    @.attr(x: AlienConstants.IDLE_X, y: AlienConstants.IDLE_Y, visible: false)
     @node.remove()
+    return @
 
   # There are 3 alien types, 1-3
   alien: (type, x, y, index) ->
     @.addComponent("alien#{type}")
-    @.attr(x: x, y: y)
-    @index = index
+
+    @spawnX = x
+    @spawnY = y
+
     @type = type
+
     # AlienConstants.HITBOX actually returns a function you must call and this
     # allows a brand new array each time.
     @.collision(new Crafty.polygon((AlienConstants.HITBOX[type])()))
@@ -39,13 +50,16 @@ Crafty.c "Alien",
   advance: ->
     @.move(@direction, AlienConstants.HORIZONTAL_SPEED)
     @.reelPosition((@.reelPosition() + 1) % 2)
+    return @
 
   descend: ->
     @.move('s', AlienConstants.VERTICAL_SPEED)
     if @direction is 'w' then @direction = 'e' else @direction = 'w'
+    return @
 
   pointsWorth: ->
     50 * @type
 
   setContainingNode: (node) ->
     @node = node
+    return @

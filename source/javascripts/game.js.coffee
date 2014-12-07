@@ -4,22 +4,15 @@ class @Game
 
   initialize: ->
     @player = Crafty.e("Player")
-
-    @player.setPosition(
-      Crafty.viewport.width / 2 - PlayerConstants.WIDTH / 2,
-      Crafty.viewport.height - PlayerConstants.HEIGHT)
-
     @score = Crafty.e("Score")
     @lives = Crafty.e("Lives")
-
-    @score.bind("LifeIncrement", => @lives.lifeUp())
-
-    Crafty.e("playerLife").attr(x: 400, y: 400, visible: true)
+    @spaceship = Crafty.e("Spaceship")
 
     @createAliens()
     @createAlienShots()
     @createShields()
-    @createSpaceship()
+
+    @score.bind("LifeIncrement", => @lives.lifeUp())
 
     @player.bind("AlienHit", @alienHit)
     @player.bind("SpaceshipHit", @spaceshipHit)
@@ -27,13 +20,22 @@ class @Game
     @player.bind("AlienShotHit", @alienShotHit)
     @player.bind("Respawning", @playerRespawning)
 
-  createSpaceship: ->
+    @.resetBoard()
+
+  resetBoard: ->
+    @player.setPosition(
+      Crafty.viewport.width / 2 - PlayerConstants.WIDTH / 2,
+      Crafty.viewport.height - PlayerConstants.HEIGHT)
+
+    @resetAliens()
+    @resetSpaceship()
+
+  resetSpaceship: ->
     @shipSpawnCounter = 0
-    @spaceship = Crafty.e("Spaceship")
     @spaceship.destroy()
 
   createAliens: ->
-    @alienMoveCounter = 0
+    @alienPool = []
 
     @aliens = new DLL.DoublyLinkedList()
     leftStart = Crafty.viewport.width / 2 - AlienConstants.WIDTH * 5.5
@@ -47,10 +49,21 @@ class @Game
           topStart + AlienConstants.HEIGHT * row,
           alienIndex++)
 
-        node = @aliens.append(alien)
-        alien.setContainingNode(node)
+        @alienPool.push(alien)
 
-    @alienCount = @aliens.size()
+    @alienCount = @alienPool.length
+
+  resetAliens: ->
+    @alienMoveCounter = 0
+
+    for alien in @alienPool
+      node = @aliens.append(alien)
+      alien.respawn().setContainingNode(node)
+
+    @.updateAlienMoveInterval()
+
+  updateAlienMoveInterval: ->
+    @alienMoveInterval = AlienConstants.MOVEMENT_INTERVAL / Math.pow(80, 1 - (@aliens.size() / @alienCount))
 
   createAlienShots: ->
     @alienShots = new DLL.DoublyLinkedList()
@@ -105,7 +118,7 @@ class @Game
 
   # Returns true if the aliens moved
   handleAlienMovement: (dt) ->
-    if @alienMoveCounter < AlienConstants.MOVEMENT_INTERVAL / Math.pow(80, 1 - (@aliens.size() / @alienCount))
+    if @alienMoveCounter < @alienMoveInterval
       @alienMoveCounter += dt
       false
     else
@@ -141,7 +154,8 @@ class @Game
 
   alienHit: (alien) =>
     @score.addScore(alien.pointsWorth())
-    alien.destroy()
+    alien.die()
+    @.updateAlienMoveInterval()
     #TODO: @checkVictory() ?
 
   spaceshipHit: (hitDataArray) =>
