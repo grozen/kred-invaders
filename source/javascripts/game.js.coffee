@@ -29,6 +29,7 @@ class @Game
 
     @resetAliens()
     @resetSpaceship()
+    @resetShields()
 
   resetSpaceship: ->
     @shipSpawnCounter = 0
@@ -77,13 +78,14 @@ class @Game
       alienShot.setContainingList(@alienShots)
 
   resetAlienShots: ->
-    #TODO: Use this when the player wins
+    #TODO: Use this when the player wins. Also make the alien ship vanish.
     alienShotNode = @alienShots.head()
     while (alienShot)
       alienShotNode.data.stop()
       alienShotNode = alienShotNode.next
 
   createShields: ->
+    @shieldPool = []
     spacing = 80
     middle = Crafty.viewport.width / 2
     @createShieldFormation(middle - spacing * 3, 500)
@@ -93,15 +95,24 @@ class @Game
 
   createShieldFormation: (x, y) ->
     size = ShieldConstants.WIDTH
-    Crafty.e("Shield").shield(x - 0.5 * size, y - 2 * size)
-    Crafty.e("Shield").shield(x - 1.5 * size, y - 2 * size)
-    Crafty.e("Shield").shield(x + 0.5 * size, y - 2 * size)
-    Crafty.e("Shield").shield(x - 1.5 * size, y - size)
-    Crafty.e("Shield").shield(x + 0.5 * size, y - size)
-    Crafty.e("Shield").shield(x - 2.5 * size, y - size)
-    Crafty.e("Shield").shield(x + 1.5 * size, y - size)
-    Crafty.e("Shield").shield(x - 2.5 * size, y)
-    Crafty.e("Shield").shield(x + 1.5 * size, y)
+
+    coordinates =
+      [[x - 0.5 * size, y - 2 * size]
+       [x - 1.5 * size, y - 2 * size]
+       [x + 0.5 * size, y - 2 * size]
+       [x - 1.5 * size, y - size]
+       [x + 0.5 * size, y - size]
+       [x - 2.5 * size, y - size]
+       [x + 1.5 * size, y - size]
+       [x - 2.5 * size, y]
+       [x + 1.5 * size, y]]
+
+    for coordinate in coordinates
+      shieldBlock = Crafty.e("Shield")
+      @shieldPool.push(shieldBlock.shield.apply(shieldBlock, coordinate))
+
+  resetShields: ->
+    (shield.respawn() for shield in @shieldPool)
 
   leftmostAlien: ->
     @aliens.head().data
