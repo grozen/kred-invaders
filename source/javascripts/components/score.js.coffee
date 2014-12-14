@@ -11,6 +11,10 @@ Crafty.c 'Score',
     @.attr(x: ScoreConstants.MARGIN_X, y: ScoreConstants.MARGIN_Y, w: 400).css('text-align': 'left')
     @.updateText().unselectable().textColor('#FFFF00').textFont(size: '20px', family: 'Silkscreen Expanded')
 
+  reset: ->
+    @score = 0
+    @updateText()
+
   addScore: (add) ->
     @.trigger("LifeIncrement", @) if Math.floor((@score + add) / ScoreConstants.LIFE_GAIN_SCORE) > Math.floor(@score / ScoreConstants.LIFE_GAIN_SCORE)
     @score += add
@@ -18,3 +22,6 @@ Crafty.c 'Score',
 
   updateText: ->
     @.text("Score: #{@score}")
+
+  getScore: ->
+    @score

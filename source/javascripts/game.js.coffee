@@ -4,6 +4,7 @@ class @Game
 
   initialize: ->
     @player = Crafty.e("Player")
+    @banner = Crafty.e("Banner")
     @score = Crafty.e("Score")
     @lives = Crafty.e("Lives")
     @spaceship = Crafty.e("Spaceship")
@@ -200,4 +201,11 @@ class @Game
 
   playerRespawning: (player) =>
     if (@lives.lives == 0)
-      gameOver()
+      @.gameOver()
+
+  gameOver: ->
+    @player.hide()
+    @player.disableControl()
+
+    @banner.show("Game Over", "Final score - #{@score.getScore()}<br>Press any key to try again", 500, 200, 600, 400)
+    # TODO: Allow restarting the game
