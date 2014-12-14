@@ -9,6 +9,7 @@ Crafty.c "PlayerBody",
     @.reel("MoveLeft", PlayerConstants.MOVEMENT_ANIMATION_DURATION, 7, 0, -8)
 
     @.collision(new Crafty.polygon([12, 32], [12,64], [52, 64], [52, 32]))
+    @.checkHits('Alien')
 
     @.bind("NewDirection", @changedDirection)
 

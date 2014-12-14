@@ -24,7 +24,13 @@ Crafty.c 'Player',
 
       @shot.stop()
 
+    @playerHit = (hitInfo) =>
+      target = hitInfo[0].obj
+      if target.has('Alien')
+        @.trigger('HitByAlien', target)
+
     @shot.bind("HitOn", @shotHit)
+    @body.bind("HitOn", @playerHit)
 
     @explosion.bind("ExplosionEnded", => @.respawn())
 

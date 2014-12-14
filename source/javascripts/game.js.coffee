@@ -19,6 +19,7 @@ class @Game
     @player.bind("ShieldHit", @shieldHit)
     @player.bind("AlienShotHit", @alienShotHit)
     @player.bind("Respawning", @playerRespawning)
+    @player.bind("HitByAlien", @playerAlienCollision)
 
     @.resetBoard()
 
@@ -193,6 +194,10 @@ class @Game
     @lives.lifeDown()
     @player.die()
 
+  playerAlienCollision: (alien) =>
+    @lives.deplete()
+    @player.die()
+
   playerRespawning: (player) =>
-    console.log("OMG I am so dead!")
-    #TODO: Check if player is out of life, end game if so
+    if (@lives.lives == 0)
+      gameOver()

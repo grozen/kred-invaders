@@ -29,6 +29,10 @@ Crafty.c 'Lives',
     @lives -= 1 if @lives > 0
     @updateVisibility()
 
+  deplete: ->
+    @lives = 0
+    @updateVisibility()
+
   updateVisibility: ->
     (@sprites[i].attr(visible: true) for i in [0..(@lives - 1)]) if @lives > 0
     (@sprites[i].attr(visible: false) for i in [@lives..(PlayerLifeConstants.MAX_LIVES - 1)]) if @lives < PlayerLifeConstants.MAX_LIVES
