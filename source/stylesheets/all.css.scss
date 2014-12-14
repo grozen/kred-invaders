@@ -1,9 +1,11 @@
 @charset "utf-8";
+@import "compass/css3/font-face";
 
 body {
   background: #d4d4d4 url("../images/site/background.png");
   text-align: center;
-  font-family: sans-serif; }
+  font-family: sans-serif;
+}
 
 h1 {
   color: rgba(0, 0, 0, .3);
@@ -13,7 +15,8 @@ h1 {
   text-transform: uppercase;
   text-shadow: 0 1px 0 rgba(255, 255, 255, .5);
   padding: 20px 0 10px;
-  margin: 0; }
+  margin: 0;
+}
 
 #cr-stage {
   border: 2px solid black;
