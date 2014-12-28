@@ -30,5 +30,6 @@ Crafty.c "Shield",
 
   respawn: ->
     @degradation = 0
+    @.reelPosition(@degradation)
     @.attr(x: @spawnX, y: @spawnY, visible: true)
     return @

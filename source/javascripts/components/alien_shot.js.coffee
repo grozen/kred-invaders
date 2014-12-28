@@ -30,6 +30,10 @@ Crafty.c "AlienShot",
 
     @bind("HitOn", @shotHit)
 
+    @containingNode = null
+    @containingList = null
+    @fired = false
+
   fireBy: (alien) ->
     x = alien.x + alien.w / 2
     y = alien.y + alien.h
@@ -39,6 +43,7 @@ Crafty.c "AlienShot",
     @.bind("EnterFrame", @advance)
 
     @containingNode.remove()
+    @fired = true
     return @
 
   advance: ->
@@ -52,7 +57,10 @@ Crafty.c "AlienShot",
 
     @.unbind("EnterFrame", @advance)
 
-    @containingNode = @containingList.append(@)
+    if (@fired == true)
+      @containingNode = @containingList.append(@)
+      @fired = false
+
     return @
 
   outsidePlayfield: ->

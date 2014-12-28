@@ -3,6 +3,7 @@ class @Game
     @initialize()
 
   initialize: ->
+    @inputSink = Crafty.e("Keyboard")
     @player = Crafty.e("Player")
     @banner = Crafty.e("Banner")
     @score = Crafty.e("Score")
@@ -25,13 +26,22 @@ class @Game
     @.resetBoard()
 
   resetBoard: ->
+    @banner.hide()
+
+    @lives.reset()
+
     @player.setPosition(
       Crafty.viewport.width / 2 - PlayerConstants.WIDTH / 2,
       Crafty.viewport.height - PlayerConstants.HEIGHT)
+    @player.show()
+    @player.enableControl()
 
-    @resetAliens()
-    @resetSpaceship()
-    @resetShields()
+    @score.reset()
+
+    @.resetAliens()
+    @.resetAlienShots()
+    @.resetSpaceship()
+    @.resetShields()
 
   resetSpaceship: ->
     @shipSpawnCounter = 0
@@ -58,6 +68,7 @@ class @Game
 
   resetAliens: ->
     @alienMoveCounter = 0
+    @aliens = new DLL.DoublyLinkedList()
 
     for alien in @alienPool
       node = @aliens.append(alien)
@@ -82,7 +93,7 @@ class @Game
   resetAlienShots: ->
     #TODO: Use this when the player wins. Also make the alien ship vanish.
     alienShotNode = @alienShots.head()
-    while (alienShot)
+    while (alienShotNode)
       alienShotNode.data.stop()
       alienShotNode = alienShotNode.next
 
@@ -208,4 +219,6 @@ class @Game
     @player.disableControl()
 
     @banner.show("Game Over", "Final score - #{@score.getScore()}<br>Press any key to try again", 500, 200, 600, 400)
-    # TODO: Allow restarting the game
+
+    @inputSink.one("KeyUp", =>
+      @.resetBoard())
