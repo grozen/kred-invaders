@@ -22,6 +22,7 @@ Crafty.c "Alien",
 
   respawn: ->
     @.attr(x: @spawnX, y: @spawnY, visible: true)
+    @direction = 'w'
     return @
 
   die: ->

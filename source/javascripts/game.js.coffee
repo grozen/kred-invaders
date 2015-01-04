@@ -80,6 +80,8 @@ class @Game
     @alienMoveInterval = AlienConstants.MOVEMENT_INTERVAL / Math.pow(80, 1 - (@aliens.size() / @alienCount))
 
   createAlienShots: ->
+    @alienShotPool = []
+
     @alienShots = new DLL.DoublyLinkedList()
     for _ in [0..AlienShotConstants.MAX_SHOTS - 1]
       alienShot = Crafty.e("AlienShot")
@@ -90,12 +92,12 @@ class @Game
       alienShot.setContainingNode(alienShotNode)
       alienShot.setContainingList(@alienShots)
 
+      @alienShotPool.push(alienShot)
+
   resetAlienShots: ->
     #TODO: Use this when the player wins. Also make the alien ship vanish.
-    alienShotNode = @alienShots.head()
-    while (alienShotNode)
-      alienShotNode.data.stop()
-      alienShotNode = alienShotNode.next
+    for alienShot in @alienShotPool
+      alienShot.stop()
 
   createShields: ->
     @shieldPool = []
