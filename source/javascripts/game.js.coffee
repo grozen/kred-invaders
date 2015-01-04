@@ -43,6 +43,15 @@ class @Game
     @.resetSpaceship()
     @.resetShields()
 
+  nextRound: ->
+    @banner.hide()
+
+    @player.enableShooting()
+
+    @.resetAliens()
+    @.resetAlienShots()
+
+
   resetSpaceship: ->
     @shipSpawnCounter = 0
     @spaceship.destroy()
@@ -189,7 +198,8 @@ class @Game
     @score.addScore(alien.pointsWorth())
     alien.die()
     @.updateAlienMoveInterval()
-    #TODO: @checkVictory() ?
+
+    @.victory() if @aliens.size == 0
 
   spaceshipHit: (hitDataArray) =>
     playerShot = hitDataArray[0]
@@ -205,12 +215,10 @@ class @Game
     alienShot.stop()
 
   playerHit: (player) =>
-    @lives.lifeDown()
-    @player.die()
+    @lives.lifeDown() if @player.die()
 
   playerAlienCollision: (alien) =>
-    @lives.deplete()
-    @player.die()
+    @lives.deplete() if @player.die()
 
   playerRespawning: (player) =>
     if (@lives.lives == 0)
@@ -224,3 +232,10 @@ class @Game
 
     @inputSink.one("KeyUp", =>
       @.resetBoard())
+
+  victory: ->
+    @banner.show("Victory", "Well done, but more aliens are inbound!<br>Press space to press onward", 500, 200, 600, 400)
+    @player.disableShooting()
+
+    @inputSink.one("KeyUp", (e) =>
+      @.nextRound() if e.key == Crafty.keys.SPACE)

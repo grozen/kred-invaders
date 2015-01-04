@@ -8,6 +8,7 @@ Crafty.c 'Player',
     @shot = Crafty.e('PlayerShot')
     @explosion = Crafty.e('Explosion').explosion('playerExplosion', 3, 1000, 2)
     @isShooting = false
+    @shootingDisabled = false
 
     @.enableControl()
 
@@ -64,6 +65,9 @@ Crafty.c 'Player',
       @explosion.explodeAt(@body.x, @body.y)
       @.disableControl()
       @.hide()
+      return true
+
+    return false
 
   isDead: ->
     !@body._visible
@@ -74,7 +78,7 @@ Crafty.c 'Player',
     @.trigger("Respawning", @)
 
   keyDown: ->
-    if @.isDown(Crafty.keys.SPACE)
+    if @.isDown(Crafty.keys.SPACE) && @shootingDisabled == false
       unless @isShooting
         @isShooting = true
         @shoot()
@@ -89,6 +93,7 @@ Crafty.c 'Player',
   enableControl: ->
     @body.enableControl()
     @cannon.enableControl()
+    @.enableShooting()
     @.bind("KeyDown", @keyDown)
     @.bind("KeyUp", @keyUp)
 
@@ -97,3 +102,9 @@ Crafty.c 'Player',
     @cannon.disableControl()
     @.unbind("KeyDown", @keyDown)
     @.unbind("KeyUp", @keyUp)
+
+  disableShooting: ->
+    @shootingDisabled = true
+
+  enableShooting: ->
+    @shootingDisabled = false
