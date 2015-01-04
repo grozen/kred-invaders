@@ -137,7 +137,7 @@ class @Game
 
   update: (updateData) =>
     if (@handleAlienMovement(updateData.dt))
-      @handleAlienShots()
+      @handleAlienShots() unless @player.isDead()
 
     @handleShipSpawning(updateData.dt)
 

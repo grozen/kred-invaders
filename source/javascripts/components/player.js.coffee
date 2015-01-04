@@ -60,9 +60,13 @@ Crafty.c 'Player',
     return @
 
   die: ->
-    @explosion.explodeAt(@body.x, @body.y)
-    @.disableControl()
-    @.hide()
+    if @.isDead() == false
+      @explosion.explodeAt(@body.x, @body.y)
+      @.disableControl()
+      @.hide()
+
+  isDead: ->
+    !@body._visible
 
   respawn: ->
     @.enableControl()
