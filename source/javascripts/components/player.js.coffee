@@ -64,6 +64,7 @@ Crafty.c 'Player',
     if @.isDead() == false
       @explosion.explodeAt(@body.x, @body.y)
       @.disableControl()
+      @.stopShooting()
       @.hide()
       return true
 
@@ -79,16 +80,22 @@ Crafty.c 'Player',
 
   keyDown: ->
     if @.isDown(Crafty.keys.SPACE) && @shootingDisabled == false
-      unless @isShooting
-        @isShooting = true
-        @shoot()
-        @.bind("ShotStopped", @shoot)
+      @.startShooting()
 
   keyUp: ->
     if not @.isDown(Crafty.keys.SPACE)
-      if @isShooting
-        @isShooting = false
-        @.unbind("ShotStopped", @shoot)
+      @.stopShooting()
+
+  startShooting: ->
+    unless @isShooting
+      @isShooting = true
+      @shoot()
+      @.bind("ShotStopped", @shoot)
+
+  stopShooting: ->
+    if @isShooting
+      @isShooting = false
+      @.unbind("ShotStopped", @shoot)
 
   enableControl: ->
     @body.enableControl()
