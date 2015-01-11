@@ -1,3 +1,6 @@
+# TODO: Move this
+# Crafty.sprite(48, imageFileAssetHashNameMap['alien_explosion'], alienExplosion: [0, 0])
+
 class @Game
   constructor: ->
     @initialize()
@@ -42,6 +45,9 @@ class @Game
     @.resetAlienShots()
     @.resetSpaceship()
     @.resetShields()
+
+# TODO: Move this
+# Crafty.e('Explosion').explosion('alienExplosion', 1, 500, 2).explosionText('50', '#FFFFFF', 10).explodeAt(300, 500)
 
   nextRound: ->
     @inputSink.unbind("KeyUp")
