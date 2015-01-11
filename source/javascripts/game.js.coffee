@@ -44,6 +44,7 @@ class @Game
     @.resetShields()
 
   nextRound: ->
+    @inputSink.unbind("KeyUp")
     @banner.hide()
 
     @player.enableShooting()
@@ -166,6 +167,8 @@ class @Game
     else
       @alienMoveCounter = 0
       alienNode = @aliens.head()
+      return false unless alienNode
+
       if @aliensMovingOutsideScreen()
         while (alienNode)
           alienNode.data.descend()
@@ -199,7 +202,7 @@ class @Game
     alien.die()
     @.updateAlienMoveInterval()
 
-    @.victory() if @aliens.size == 0
+    @.victory() if @aliens.size() == 0
 
   spaceshipHit: (hitDataArray) =>
     playerShot = hitDataArray[0]
@@ -234,8 +237,8 @@ class @Game
       @.resetBoard())
 
   victory: ->
-    @banner.show("Victory", "Well done, but more aliens are inbound!<br>Press space to press onward", 500, 200, 600, 400)
+    @banner.show("Victory", "Well done, but more aliens are inbound!<br>Press space to persevere", 500, 200, 600, 300)
     @player.disableShooting()
 
-    @inputSink.one("KeyUp", (e) =>
+    @inputSink.bind("KeyUp", (e) =>
       @.nextRound() if e.key == Crafty.keys.SPACE)
