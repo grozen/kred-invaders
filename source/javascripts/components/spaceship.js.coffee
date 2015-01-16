@@ -8,12 +8,14 @@ class @ShipConstants
   @IDLE_X = -200
   @IDLE_Y = 0
 
+Crafty.sprite(ShipConstants.WIDTH, ShipConstants.HEIGHT, imageFileAssetHashNameMap['spaceship_explosion'], spaceshipExplosion: [0, 0])
 Crafty.sprite(ShipConstants.WIDTH, ShipConstants.HEIGHT, imageFileAssetHashNameMap['spaceship'], spaceshipSprite: [0, 0])
 
 Crafty.c "Spaceship",
   init: ->
     @.requires("2D, DOM, SpriteAnimation, Collision, WiredHitBox, spaceshipSprite")
     @flying = false
+    @explosion = Crafty.e('Explosion').explosion('spaceshipExplosion', 3, 1000, 2)
 
   pointsWorth: (playerShot) ->
     hitRelativeX = playerShot._x + playerShot._w / 2 - @._x
@@ -26,7 +28,9 @@ Crafty.c "Spaceship",
 
     factor * 50
 
-  destroy: ->
+  destroy: (pointsGained = 0) ->
+    @explosion.explosionText("#{pointsGained}", '#FFFFFF', 10).explodeAt(@.x, @.y)
+
     @.attr(x: ShipConstants.IDLE_X, y: ShipConstants.IDLE_Y, visible: false)
     #TODO: Pause animation when there is one
     @.unbind("EnterFrame", @advance)

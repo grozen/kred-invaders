@@ -227,8 +227,10 @@ class @Game
   spaceshipHit: (hitDataArray) =>
     playerShot = hitDataArray[0]
     spaceship = hitDataArray[1]
-    @score.addScore(spaceship.pointsWorth(playerShot))
-    spaceship.destroy()
+    pointsGained = spaceship.pointsWorth(playerShot)
+
+    @score.addScore(pointsGained)
+    spaceship.destroy(pointsGained)
 
   shieldHit: (shield) =>
     shield.degrade()
