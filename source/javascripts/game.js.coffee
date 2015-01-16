@@ -1,5 +1,4 @@
-# TODO: Move this
-# Crafty.sprite(48, imageFileAssetHashNameMap['alien_explosion'], alienExplosion: [0, 0])
+Crafty.sprite(AlienConstants.WIDTH, imageFileAssetHashNameMap['alien_explosion'], alienExplosion: [0, 0])
 
 class @Game
   constructor: ->
@@ -15,6 +14,7 @@ class @Game
 
     @createAliens()
     @createAlienShots()
+    @createAlienExplosions()
     @createShields()
 
     @score.bind("LifeIncrement", => @lives.lifeUp())
@@ -110,6 +110,14 @@ class @Game
 
       @alienShotPool.push(alienShot)
 
+  createAlienExplosions: ->
+    explosions = @alienExplosions = new DLL.DoublyLinkedList()
+    for _ in [0.. 6]
+      alienExplosion = Crafty.e('Explosion').explosion('alienExplosion', 1, 500, 2)
+      alienExplosion.bind("ExplosionEnded", -> explosions.append(alienExplosion))
+
+      @alienExplosions.append(alienExplosion)
+
   resetAlienShots: ->
     #TODO: Use this when the player wins. Also make the alien ship vanish.
     for alienShot in @alienShotPool
@@ -204,7 +212,13 @@ class @Game
       (@rightmostAlien().x + AlienConstants.WIDTH + AlienConstants.HORIZONTAL_SPEED > Crafty.viewport.width))
 
   alienHit: (alien) =>
-    @score.addScore(alien.pointsWorth())
+    pointsGained = alien.pointsWorth()
+    @score.addScore(pointsGained)
+
+    alienExplosionNode = @alienExplosions.head()
+    alienExplosionNode.remove()
+    alienExplosionNode.data.explosionText("#{pointsGained}", '#FFFFFF', 10).explodeAt(alien.x, alien.y)
+
     alien.die()
     @.updateAlienMoveInterval()
 
