@@ -16,6 +16,7 @@ Crafty.c "Spaceship",
     @.requires("2D, DOM, SpriteAnimation, Collision, WiredHitBox, spaceshipSprite")
     @flying = false
     @explosion = Crafty.e('Explosion').explosion('spaceshipExplosion', 3, 1000, 2)
+    @.attr(x: ShipConstants.IDLE_X, y: ShipConstants.IDLE_Y, visible: false)
 
   pointsWorth: (playerShot) ->
     hitRelativeX = playerShot._x + playerShot._w / 2 - @._x
