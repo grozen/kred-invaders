@@ -46,9 +46,6 @@ class @Game
     @.resetSpaceship()
     @.resetShields()
 
-# TODO: Move this
-# Crafty.e('Explosion').explosion('alienExplosion', 1, 500, 2).explosionText('50', '#FFFFFF', 10).explodeAt(300, 500)
-
   nextRound: ->
     @inputSink.unbind("KeyUp")
     @banner.hide()
