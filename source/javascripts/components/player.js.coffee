@@ -58,6 +58,7 @@ Crafty.c 'Player',
     unless @shot.isActive()
       @cannon.fire()
       @shot.fireFrom(@x() + 29, @y() + 16)
+      Crafty.audio.play('player_shoot')
     return @
 
   die: ->
