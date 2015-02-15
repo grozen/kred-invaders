@@ -184,7 +184,15 @@ class @Game
 
       if @aliensMovingOutsideScreen()
         while (alienNode)
-          alienNode.data.descend()
+          alien = alienNode.data
+          alien.descend()
+
+          # An alien that reaches the bottom of the screen is game over, man
+          if (alien.y + AlienConstants.HEIGHT > Crafty.viewport.height)
+            alien.dieSilently()
+            @lives.deplete()
+            @player.die()
+
           alienNode = alienNode.next
       else
         while (alienNode)
