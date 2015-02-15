@@ -61,6 +61,7 @@ class @Game
     @spaceship.destroy()
 
   createAliens: ->
+    @alienMoveSoundIndex = 0
     @alienPool = []
 
     @aliens = new DLL.DoublyLinkedList()
@@ -188,6 +189,9 @@ class @Game
         while (alienNode)
           alienNode.data.advance()
           alienNode = alienNode.next
+
+      @alienMoveSoundIndex = (@alienMoveSoundIndex + 1) % 2
+      Crafty.audio.play("alien_move#{@alienMoveSoundIndex}")
 
       true
 

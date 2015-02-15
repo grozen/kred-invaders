@@ -67,6 +67,7 @@ Crafty.c 'Player',
       @.disableControl()
       @.stopShooting()
       @.hide()
+      Crafty.audio.play('player_die')
       return true
 
     return false

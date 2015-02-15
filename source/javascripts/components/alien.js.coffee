@@ -28,6 +28,7 @@ Crafty.c "Alien",
   die: ->
     @.attr(x: AlienConstants.IDLE_X, y: AlienConstants.IDLE_Y, visible: false)
     @node.remove()
+    Crafty.audio.play('alien_die')
     return @
 
   # There are 3 alien types, 1-3
