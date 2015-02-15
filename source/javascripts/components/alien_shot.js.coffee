@@ -51,6 +51,10 @@ Crafty.c "AlienShot",
     @stop() if @outsidePlayfield()
     return @
 
+  die: ->
+    Crafty.audio.play("alien_shot_hit")
+    @.stop()
+
   stop: ->
     @.attr(x: AlienShotConstants.SHOT_IDLE_X, y: AlienShotConstants.SHOT_IDLE_Y, visible: false)
     @.pauseAnimation()

@@ -240,7 +240,7 @@ class @Game
 
   alienShotHit: (alienShot) =>
     @score.addScore(alienShot.pointsWorth())
-    alienShot.stop()
+    alienShot.die()
 
   playerHit: (player) =>
     @lives.lifeDown() if @player.die()
