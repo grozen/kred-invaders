@@ -62,6 +62,7 @@ class @Game
 
   createAliens: ->
     @alienMoveSoundIndex = 0
+    @alienMoveSoundId = null
     @alienPool = []
 
     @aliens = new DLL.DoublyLinkedList()
@@ -191,7 +192,8 @@ class @Game
           alienNode = alienNode.next
 
       @alienMoveSoundIndex = (@alienMoveSoundIndex + 1) % 2
-      Crafty.audio.play("alien_move#{@alienMoveSoundIndex}")
+      Crafty.audio.stop(@alienMoveSoundId)
+      @alienMoveSoundId = Crafty.audio.play("alien_move#{@alienMoveSoundIndex}")
 
       true
 
