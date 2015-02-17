@@ -35,6 +35,8 @@ class @Game
 
     @lives.reset()
 
+    @player_won = false
+
     @player.setPosition(
       Crafty.viewport.width / 2 - PlayerConstants.WIDTH / 2,
       Crafty.viewport.height - PlayerConstants.HEIGHT)
@@ -51,6 +53,8 @@ class @Game
   nextRound: ->
     @inputSink.unbind("KeyUp")
     @banner.hide()
+
+    @player_won = false
 
     @player.enableShooting()
 
@@ -163,7 +167,7 @@ class @Game
     if (@handleAlienMovement(updateData.dt))
       @handleAlienShots() unless @player.isDead()
 
-    @handleShipSpawning(updateData.dt)
+    @handleShipSpawning(updateData.dt) unless @player_won
 
   handleShipSpawning: (dt) ->
     if @shipSpawnCounter < ShipConstants.SPAWN_CHANCE_INTERVAL
@@ -272,6 +276,7 @@ class @Game
   victory: ->
     @banner.show("Victory", "Well done, but more aliens are inbound!<br>Press space to persevere", 500, 200, 600, 300)
     @player.disableShooting()
+    @player_won = true
 
     @inputSink.bind("KeyUp", (e) =>
       @.nextRound() if e.key == Crafty.keys.SPACE)
