@@ -29,12 +29,17 @@ Crafty.c "Spaceship",
 
     factor * 50
 
-  destroy: (pointsGained = 0) ->
+  destroy: (pointsGained) ->
     @explosion.explosionText("#{pointsGained}", '#FFFFFF', 10).explodeAt(@.x, @.y)
+    Crafty.audio.play("ship_hit")
 
+    return @.hide()
+
+  hide: ->
     @.attr(x: ShipConstants.IDLE_X, y: ShipConstants.IDLE_Y, visible: false)
     #TODO: Pause animation when there is one
     @.unbind("EnterFrame", @advance)
+    Crafty.audio.stop("ship_fly")
     @flying = false
 
     return @
@@ -50,13 +55,14 @@ Crafty.c "Spaceship",
         @.attr(x: -ShipConstants.WIDTH, y: ShipConstants.FLIGHT_Y, visible: true)
 
     @.bind("EnterFrame", @advance)
+    Crafty.audio.play("ship_fly", -1)
     #TODO: Start animation when there is one
 
     return @
 
   advance: ->
     @.move(@direction, ShipConstants.SPEED)
-    @destroy() if @outsidePlayfield()
+    @.hide() if @outsidePlayfield()
 
   outsidePlayfield: ->
     @.x > Crafty.viewport.width || @.x < -ShipConstants.WIDTH

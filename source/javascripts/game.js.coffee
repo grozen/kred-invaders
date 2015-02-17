@@ -5,6 +5,8 @@ class @Game
     @initialize()
 
   initialize: ->
+    Crafty.audio.setChannels(10)
+
     @inputSink = Crafty.e("Keyboard")
     @player = Crafty.e("Player")
     @banner = Crafty.e("Banner")
@@ -58,11 +60,10 @@ class @Game
 
   resetSpaceship: ->
     @shipSpawnCounter = 0
-    @spaceship.destroy()
+    @spaceship.hide()
 
   createAliens: ->
     @alienMoveSoundIndex = 0
-    @alienMoveSoundId = null
     @alienPool = []
 
     @aliens = new DLL.DoublyLinkedList()
@@ -200,7 +201,6 @@ class @Game
           alienNode = alienNode.next
 
       @alienMoveSoundIndex = (@alienMoveSoundIndex + 1) % 2
-      Crafty.audio.stop(@alienMoveSoundId)
       @alienMoveSoundId = Crafty.audio.play("alien_move#{@alienMoveSoundIndex}")
 
       true
