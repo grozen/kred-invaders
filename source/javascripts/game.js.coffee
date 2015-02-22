@@ -116,9 +116,9 @@ class @Game
 
   createAlienExplosions: ->
     explosions = @alienExplosions = new DLL.DoublyLinkedList()
-    for _ in [0.. 6]
+    for _ in [0..6]
       alienExplosion = Crafty.e('Explosion').explosion('alienExplosion', 1, 500, 2)
-      alienExplosion.bind("ExplosionEnded", -> explosions.append(alienExplosion))
+      alienExplosion.bind("ExplosionEnded", -> explosions.append(@))
 
       @alienExplosions.append(alienExplosion)
 
