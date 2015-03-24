@@ -17,7 +17,7 @@ Crafty.sprite(AlienConstants.WIDTH, imageFileAssetHashNameMap['alien3'], alien3:
 
 Crafty.c "Alien",
   init: ->
-    @.requires("2D, DOM, SpriteAnimation, Collision, WiredHitBox")
+    @.requires("2D, DOM, SpriteAnimation, Collision")
     @direction = 'w'
 
   respawn: ->

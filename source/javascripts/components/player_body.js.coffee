@@ -3,7 +3,7 @@ Crafty.sprite(PlayerConstants.WIDTH, imageFileAssetHashNameMap['player_base'],
 
 Crafty.c "PlayerBody",
   init: ->
-    @.requires("PlayerCommon, bodySprite, SpriteAnimation, Collision, WiredHitBox")
+    @.requires("PlayerCommon, bodySprite, SpriteAnimation, Collision")
 
     @.reel("MoveRight", PlayerConstants.MOVEMENT_ANIMATION_DURATION, 0, 0, 8)
     @.reel("MoveLeft", PlayerConstants.MOVEMENT_ANIMATION_DURATION, 7, 0, -8)

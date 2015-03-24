@@ -14,7 +14,7 @@ Crafty.sprite(ShipConstants.WIDTH, ShipConstants.HEIGHT, imageFileAssetHashNameM
 
 Crafty.c "Spaceship",
   init: ->
-    @.requires("2D, DOM, SpriteAnimation, Collision, WiredHitBox, spaceshipSprite")
+    @.requires("2D, DOM, SpriteAnimation, Collision, spaceshipSprite")
     @flying = false
     @explosion = Crafty.e('Explosion').explosion('spaceshipExplosion', 3, 1000, 2)
     @.attr(x: ShipConstants.IDLE_X, y: ShipConstants.IDLE_Y, visible: false)
