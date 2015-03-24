@@ -123,7 +123,6 @@ class @Game
       @alienExplosions.append(alienExplosion)
 
   resetAlienShots: ->
-    #TODO: Use this when the player wins. Also make the alien ship vanish.
     for alienShot in @alienShotPool
       alienShot.stop()
 
