@@ -1,12 +1,13 @@
 class @ShipConstants
   @SPEED = 4
   @HEIGHT = 30
-  @WIDTH = 78
+  @WIDTH = 80
   @FLIGHT_Y = 50
   @SPAWN_CHANCE_INTERVAL = 5000
   @SPAWN_CHANCE = 20
   @IDLE_X = -200
   @IDLE_Y = 0
+  @MOVEMENT_ANIMATION_DURATION = 250
 
 Crafty.sprite(ShipConstants.WIDTH, ShipConstants.HEIGHT, imageFileAssetHashNameMap['spaceship_explosion'], spaceshipExplosion: [0, 0])
 Crafty.sprite(ShipConstants.WIDTH, ShipConstants.HEIGHT, imageFileAssetHashNameMap['spaceship'], spaceshipSprite: [0, 0])
@@ -17,6 +18,9 @@ Crafty.c "Spaceship",
     @flying = false
     @explosion = Crafty.e('Explosion').explosion('spaceshipExplosion', 3, 1000, 2)
     @.attr(x: ShipConstants.IDLE_X, y: ShipConstants.IDLE_Y, visible: false)
+
+    @.reel("MoveRight", ShipConstants.MOVEMENT_ANIMATION_DURATION, 0, 0, 12)
+    @.reel("MoveLeft", ShipConstants.MOVEMENT_ANIMATION_DURATION, 11, 0, -12)
 
   pointsWorth: (playerShot) ->
     hitRelativeX = playerShot._x + playerShot._w / 2 - @._x
@@ -37,7 +41,7 @@ Crafty.c "Spaceship",
 
   hide: ->
     @.attr(x: ShipConstants.IDLE_X, y: ShipConstants.IDLE_Y, visible: false)
-    #TODO: Pause animation when there is one
+    @.pauseAnimation()
     @.unbind("EnterFrame", @advance)
     Crafty.audio.stop("ship_fly")
     @flying = false
@@ -50,13 +54,14 @@ Crafty.c "Spaceship",
 
     switch direction
       when 'w'
+        @.animate("MoveLeft", -1)
         @.attr(x: Crafty.viewport.width, y: ShipConstants.FLIGHT_Y, visible: true)
       else
+        @.animate("MoveRight", -1)
         @.attr(x: -ShipConstants.WIDTH, y: ShipConstants.FLIGHT_Y, visible: true)
 
     @.bind("EnterFrame", @advance)
     Crafty.audio.play("ship_fly", -1)
-    #TODO: Start animation when there is one
 
     return @
 
