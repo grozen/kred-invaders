@@ -1,0 +1,25 @@
+@font-face {
+  font-family: "Silkscreen Expanded";
+  src: url("/fonts/slkscre-1404b923.ttf") format('truetype'); }
+/* line 6, /Users/grozen/Work/Games/kred-invaders/source/stylesheets/all.css.scss */
+body {
+  background: #d4d4d4 url("../images/site/background-29e26e74.png");
+  text-align: center;
+  font-family: sans-serif; }
+
+/* line 12, /Users/grozen/Work/Games/kred-invaders/source/stylesheets/all.css.scss */
+h1 {
+  color: rgba(0, 0, 0, 0.3);
+  font-weight: bold;
+  font-size: 32px;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  padding: 20px 0 10px;
+  margin: 0; }
+
+/* line 23, /Users/grozen/Work/Games/kred-invaders/source/stylesheets/all.css.scss */
+#cr-stage {
+  border: 2px solid black;
+  margin-left: auto;
+  margin-right: auto; }
