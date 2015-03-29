@@ -23633,8 +23633,8 @@ return jQuery;
   $(function() {
     Crafty.init(800, 600);
     Crafty.paths({
-      audio: "/",
-      images: "/"
+      audio: "",
+      images: ""
     });
     return Crafty.scene('loading');
   });
