@@ -7,3 +7,7 @@ set :images_dir, 'images'
 activate :asset_hash do |opts|
   opts.exts += %w(.wav .mp3 .ogg)
 end
+
+activate :deploy do |deploy|
+  deploy.method = :git
+end
