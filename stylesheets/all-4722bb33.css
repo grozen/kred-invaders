@@ -1,6 +1,6 @@
 @font-face {
   font-family: "Silkscreen Expanded";
-  src: url("/fonts/slkscre-1404b923.ttf") format('truetype'); }
+  src: url("../fonts/slkscre-1404b923.ttf") format('truetype'); }
 /* line 6, /Users/grozen/Work/Games/kred-invaders/source/stylesheets/all.css.scss */
 body {
   background: #d4d4d4 url("../images/site/background-29e26e74.png");
