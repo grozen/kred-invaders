@@ -38,5 +38,5 @@ Here are the various tools I used to make Kred Invaders:
 
 * [CraftyJS](http://craftyjs.com/) - A snazzy component-based HTML5 game framework with an amazing group of maintainers and a great community.
 * [MiddleMan](https://middlemanapp.com/) - Still my go-to solution for static websites.
-* [Aseprite](http://www.aseprite.org/) - Cross-platform sprite editor that is simply a delight to use. Use it and be delighted.
+* [Aseprite](http://www.aseprite.org/) - Cross-platform pixel editor that is simply a delight to use. Use it and be delighted.
 * [Bfxr](http://www.bfxr.net/) - For all those bleeps and bloops.
