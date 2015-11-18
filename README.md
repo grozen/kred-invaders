@@ -33,7 +33,7 @@ and you should be able to reach the game by navigating to http://0.0.0.0:4567
 
 (Your mileage my vary depending on your OS, but this should work even on Windows)
 
-## How did I make the thing?
+## How did you make the thing?
 Here are the various tools I used to make Kred Invaders:
 
 * [CraftyJS](http://craftyjs.com/) - A snazzy component-based HTML5 game framework with an amazing group of maintainers and a great community.
